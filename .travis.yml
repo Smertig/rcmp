@@ -1,0 +1,145 @@
+language: cpp
+
+install:
+  - pip install --user cmake
+
+branches:
+  except:
+    - /^v[0-9]/
+
+jobs:
+  include:
+
+    - name: x86, linux, gcc-9
+      os: linux
+      dist: bionic
+      env:
+        - GCC_VER="9"
+        - MATRIX_EVAL="CC=gcc-${GCC_VER} && CXX=g++-${GCC_VER}"
+        - CMAKE_ARCH="-DCMAKE_CXX_FLAGS=-m32"
+
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - linux-libc-dev:i386
+            - g++-9-multilib
+
+    - name: x86, linux, gcc-10
+      os: linux
+      dist: focal
+      env:
+        - GCC_VER="10"
+        - MATRIX_EVAL="CC=gcc-${GCC_VER} && CXX=g++-${GCC_VER}"
+        - CMAKE_ARCH="-DCMAKE_CXX_FLAGS=-m32"
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - linux-libc-dev:i386
+            - g++-10-multilib
+
+    - name: x86, linux, clang-9
+      os: linux
+      dist: bionic
+      env:
+        - CLANG_VER="9"
+        - MATRIX_EVAL="CC=clang-${CLANG_VER} && CXX=clang++-${CLANG_VER}"
+        - CMAKE_ARCH="-DCMAKE_CXX_FLAGS=-m32"
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - linux-libc-dev:i386
+            - g++-9-multilib
+            - clang-9
+
+    - name: x86, linux, clang-10
+      os: linux
+      dist: bionic
+      env:
+        - CLANG_VER="10"
+        - MATRIX_EVAL="CC=clang-${CLANG_VER} && CXX=clang++-${CLANG_VER}"
+        - CMAKE_ARCH="-DCMAKE_CXX_FLAGS=-m32"
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - linux-libc-dev:i386
+            - g++-10-multilib # for libstdc++
+            - clang-10
+
+    - name: x86-64, linux, gcc-9
+      os: linux
+      dist: bionic
+      env:
+        - GCC_VER="9"
+        - MATRIX_EVAL="CC=gcc-${GCC_VER} && CXX=g++-${GCC_VER}"
+        - CMAKE_ARCH=""
+
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9-multilib
+
+    - name: x86-64, linux, gcc-10
+      os: linux
+      dist: focal
+      env:
+        - GCC_VER="10"
+        - MATRIX_EVAL="CC=gcc-${GCC_VER} && CXX=g++-${GCC_VER}"
+        - CMAKE_ARCH=""
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10-multilib
+
+    - name: x86-64, linux, clang-9
+      os: linux
+      dist: bionic
+      env:
+        - CLANG_VER="9"
+        - MATRIX_EVAL="CC=clang-${CLANG_VER} && CXX=clang++-${CLANG_VER}"
+        - CMAKE_ARCH=""
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9-multilib
+            - clang-9
+
+    - name: x86-64, linux, clang-10
+      os: linux
+      dist: bionic
+      env:
+        - CLANG_VER="10"
+        - MATRIX_EVAL="CC=clang-${CLANG_VER} && CXX=clang++-${CLANG_VER}"
+        - CMAKE_ARCH=""
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10-multilib # for libstdc++
+            - clang-10
+
+before_script:
+  - eval "${MATRIX_EVAL}"
+
+script:
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=Release ${CMAKE_ARCH} ..
+  - cmake --build . --config Release -- -j2
+  - ./test/rcmp-tests # ctest -j2
+
+
