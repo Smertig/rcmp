@@ -65,9 +65,10 @@ TEST_CASE("Hooks") {
 
     REQUIRE(foo(1) == 4);
 
-    rcmp::hook_function<int(int)>(foo_address, [](auto original, int arg) {
+    const auto hook = [](auto original, int arg) {
         return original(arg) * 2;
-    });
+    };
+    rcmp::hook_function<int(int)>(foo_address, hook);
 
     REQUIRE(foo(1) == 8);
 

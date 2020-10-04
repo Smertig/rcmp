@@ -3,6 +3,9 @@
 
 #include <array>
 #include <optional>
+#include <vector>
+#include <cassert>
+#include <algorithm>
 
 static_assert(RCMP_GET_ARCH() == RCMP_ARCH_X86 || RCMP_GET_ARCH() == RCMP_ARCH_X86_64);
 
