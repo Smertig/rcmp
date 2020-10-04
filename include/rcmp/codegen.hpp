@@ -60,12 +60,12 @@ struct hook_impl<generic_signature_t<Ret(Args...), Convention>, Tags...> {
     static auto get_wrapper(std::integral_constant<cconv, cconv::native_x64>) { return wrapper_native_x64; }
 #endif
 
-    static void do_hook(rcmp::address_t original_function, std::function<Ret(simple_sig_t, Args...)>&& hook) {
-        m_replaced = std::move(hook);
-
+    static void do_hook(rcmp::address_t original_function, hook_ex_t hook) {
         if (m_original != nullptr) {
             throw rcmp::error("double hook of %" PRIXPTR, original_function.as_number());
         }
+
+        m_replaced = std::move(hook);
 
         original_sig_t wrapper_function = get_wrapper(std::integral_constant<cconv, Convention>{});
 
