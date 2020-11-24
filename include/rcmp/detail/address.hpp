@@ -12,11 +12,11 @@ class address_t {
     std::uintptr_t m_value;
 
 public:
-    /* implicit */ address_t(std::nullptr_t = nullptr) noexcept : m_value(0) {
+    constexpr /* implicit */ address_t(std::nullptr_t = nullptr) noexcept : m_value(0) {
         // empty
     }
 
-    /* implicit */ address_t(std::uintptr_t value) noexcept : m_value(value) {
+    constexpr /* implicit */ address_t(std::uintptr_t value) noexcept : m_value(value) {
         // empty
     }
 
@@ -37,29 +37,29 @@ public:
         return as<T*>();
     }
 
-    std::uintptr_t as_number() const noexcept {
+    constexpr std::uintptr_t as_number() const noexcept {
         return m_value;
     }
 
-#define RCMP_DECLARE_ADDRESS_OPERATOR(OP) friend bool operator OP(address_t lhs, address_t rhs) noexcept { return lhs.m_value OP rhs.m_value; }
+#define RCMP_ADDRESS_DECLARE_OPERATOR(OP) friend constexpr bool operator OP(address_t lhs, address_t rhs) noexcept { return lhs.m_value OP rhs.m_value; }
 
-    RCMP_DECLARE_ADDRESS_OPERATOR(<);
-    RCMP_DECLARE_ADDRESS_OPERATOR(>);
-    RCMP_DECLARE_ADDRESS_OPERATOR(<=);
-    RCMP_DECLARE_ADDRESS_OPERATOR(>=);
-    RCMP_DECLARE_ADDRESS_OPERATOR(==);
-    RCMP_DECLARE_ADDRESS_OPERATOR(!=);
+    RCMP_ADDRESS_DECLARE_OPERATOR(<);
+    RCMP_ADDRESS_DECLARE_OPERATOR(>);
+    RCMP_ADDRESS_DECLARE_OPERATOR(<=);
+    RCMP_ADDRESS_DECLARE_OPERATOR(>=);
+    RCMP_ADDRESS_DECLARE_OPERATOR(==);
+    RCMP_ADDRESS_DECLARE_OPERATOR(!=);
 
-#undef RCMP_DECLARE_ADDRESS_OPERATOR
+#undef RCMP_ADDRESS_DECLARE_OPERATOR
 
-    friend address_t operator+(address_t lhs, std::ptrdiff_t rhs) noexcept { return { lhs.m_value + rhs }; }
-    friend address_t operator+(std::ptrdiff_t lhs, address_t rhs) noexcept { return { lhs + rhs.m_value }; }
+    friend constexpr address_t operator+(address_t lhs, std::ptrdiff_t rhs) noexcept { return { lhs.m_value + rhs }; }
+    friend constexpr address_t operator+(std::ptrdiff_t lhs, address_t rhs) noexcept { return { lhs + rhs.m_value }; }
 
-    friend address_t operator-(address_t lhs, std::ptrdiff_t rhs) noexcept { return { lhs.m_value - rhs }; }
-    friend std::ptrdiff_t operator-(address_t lhs, address_t rhs) noexcept { return lhs.m_value - rhs.m_value; }
+    friend constexpr address_t operator-(address_t lhs, std::ptrdiff_t rhs) noexcept { return { lhs.m_value - rhs }; }
+    friend constexpr std::ptrdiff_t operator-(address_t lhs, address_t rhs) noexcept { return lhs.m_value - rhs.m_value; }
 
-    address_t& operator+=(std::ptrdiff_t delta) noexcept { return (*this) = (*this) + delta; }
-    address_t& operator-=(std::ptrdiff_t delta) noexcept { return (*this) = (*this) - delta; }
+    constexpr address_t& operator+=(std::ptrdiff_t delta) noexcept { return (*this) = (*this) + delta; }
+    constexpr address_t& operator-=(std::ptrdiff_t delta) noexcept { return (*this) = (*this) - delta; }
 };
 
 } // namespace rcmp

@@ -7,6 +7,7 @@
 
 #include <type_traits>
 #include <optional>
+#include <cassert>
 
 namespace rcmp {
 
@@ -29,10 +30,12 @@ struct hook_impl<generic_signature_t<Ret(Args...), Convention>, Hook, Tags...> {
     inline static rcmp::address_t       m_original = nullptr;
 
     static Ret call_original(Args... args) {
+        assert(m_original != nullptr);
         return m_original.as<original_sig_t>()(args...);
     }
 
     static Ret call_hook(Args... args) {
+        assert(m_hook != std::nullopt);
         return (*m_hook)(call_original, args...);
     }
 
