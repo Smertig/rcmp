@@ -160,24 +160,36 @@ TEST_CASE("stdcall calling convention") {
 
 #endif // RCMP_HAS_STDCALL()
 
-#if RCMP_HAS_THISCALL() && !defined(_MSC_VER)
+#if RCMP_HAS_THISCALL()
 
-[[gnu::thiscall]]
-NO_OPTIMIZE float g3(int a, float b) {
-    return a * b;
-}
+struct C {
+#if defined(_MSC_VER)
 
-static_assert(std::is_same_v<decltype(&g3), float(RCMP_DETAIL_THISCALL*)(int, float)>);
-static_assert(std::is_same_v<rcmp::to_generic_signature<decltype(&g3)>, rcmp::thiscall_t<float(int, float)>>);
+    NO_OPTIMIZE static float __thiscall g3(int a, float b) {
+        return a * b + 1;
+    }
+
+#else // defined(_MSC_VER)
+
+    [[gnu::thiscall]]
+    NO_OPTIMIZE static float g3(int a, float b) {
+        return a * b + 1;
+    }
+
+#endif
+};
+
+static_assert(std::is_same_v<decltype(&C::g3), float(RCMP_DETAIL_THISCALL*)(int, float)>);
+static_assert(std::is_same_v<rcmp::to_generic_signature<decltype(&C::g3)>, rcmp::thiscall_t<float(int, float)>>);
 
 TEST_CASE("thiscall calling convention") {
-    REQUIRE(g3(10, 10) == 100);
+    REQUIRE(C::g3(10, 10) == 101);
 
-    rcmp::hook_function<rcmp::thiscall_t<float(int, float)>>(follow_jmp(g3), [](auto original, int a, float b) {
+    rcmp::hook_function<rcmp::thiscall_t<float(int, float)>>(follow_jmp(C::g3), [](auto original, int a, float b) {
         return 2.0f * original(a + 1, b - 1.0f);
     });
 
-    REQUIRE(g3(10, 10) == 198);
+    REQUIRE(C::g3(10, 10) == 200);
 
     constexpr auto converted_sum = rcmp::with_signature<sum, rcmp::thiscall_t<int(int, int)>>;
     REQUIRE(converted_sum(1, 2) == sum(1, 2));
