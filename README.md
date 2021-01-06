@@ -108,6 +108,22 @@ rcmp::hook_function<rcmp::generic_signature_t<void(int), rcmp::cconv::native_x64
 
 ```
 
+- VTable hooking (`hook_indirect_function`)
+```c++
+// Let's assume:
+// 5             - index of function in vtable
+// int A::f(int) - function signature
+using signature_t = rcmp::thiscall_t<int(A*, int)>; // x86, MSVC
+using signature_t = rcmp::cdecl_t<int(A*, int)>;    // x86, gcc/clang
+using signature_t = int(A*, int);                   // x64
+
+// vtable address can be known at compile-time (0xDEADBEEF)
+rcmp::hook_indirect_function<0xDEADBEEF + 5 * sizeof(void*), signature_t>([](auto original, A* self, int arg) { ... });
+
+// ..or at runtime
+rcmp::hook_indirect_function<signature_t>(get_vtable_address() + 5 * sizeof(void*), [](auto original, A* self, int arg) { ... });
+```
+
 ## Motivation
 
 Why *yet another* hooking library?
@@ -157,7 +173,6 @@ Most of hooking libraries depend on big, verbose or even deprecated frameworks.
 
 - No documentation (yet)
 - No way to disable hook
-- No virtual table hooking support
 - No ellipsis (`...`) support
 
 

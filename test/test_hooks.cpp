@@ -272,3 +272,39 @@ TEST_CASE("Pointer-to-member function") {
     A a{ 5 };
     REQUIRE(A_f(&a, 10) == a.f(10));
 }
+
+TEST_CASE("vtable hooking") {
+    struct A {
+        int b = 5;
+
+        NO_OPTIMIZE
+        virtual int f(int a) const {
+            return a + b;
+        }
+    };
+
+    using vtable_t = std::array<rcmp::address_t, 1>;
+
+    struct A2 {
+        vtable_t* vtable;
+        int b;
+    };
+
+    static_assert(sizeof(A) == sizeof(A2));
+
+    auto prevent_devirtualization = [](A& a) {
+        REQUIRE(a.f(10) == 15);
+
+        auto hook = [](auto original, auto self, int arg) -> int {
+            return 2 * original(self, arg + 1);
+        };
+
+        auto& vtable = *rcmp::bit_cast<A2*>(&a)->vtable;
+        rcmp::hook_indirect_function<rcmp::generic_signature_t<int(const A*, int), member_function_conv>>(&vtable[0], hook);
+
+        REQUIRE(a.f(10) == 32);
+    };
+
+    A a;
+    prevent_devirtualization(a);
+}
