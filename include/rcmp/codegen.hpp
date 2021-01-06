@@ -21,48 +21,22 @@ struct hook_impl;
 
 template <class Ret, class... Args, cconv Convention, class Hook, class... Tags>
 struct hook_impl<generic_signature_t<Ret(Args...), Convention>, Hook, Tags...> {
-    using original_sig_t = rcmp::from_generic_signature<generic_signature_t<Ret(Args...), Convention>>;
+    using generic_sig_t  = generic_signature_t<Ret(Args...), Convention>;
+    using original_sig_t = rcmp::from_generic_signature<generic_sig_t>;
     using hook_t         = Hook;
 
-    static_assert(std::is_invocable_r_v<Ret, hook_t, Ret(*)(Args...), Args...>);
+    static_assert(std::is_invocable_r_v<Ret, hook_t, original_sig_t, Args...>);
 
     inline static std::optional<hook_t> m_hook     = std::nullopt;
-    inline static rcmp::address_t       m_original = nullptr;
+    inline static original_sig_t        m_original = nullptr;
 
-    static Ret call_original(Args... args) {
-        assert(m_original != nullptr);
-        return m_original.as<original_sig_t>()(args...);
-    }
-
-    static Ret call_hook(Args... args) {
+    static Ret call_hook_impl(Args... args) {
         assert(m_hook != std::nullopt);
-        return (*m_hook)(call_original, args...);
+        assert(m_original != nullptr);
+        return (*m_hook)(m_original, args...);
     }
 
-#if RCMP_HAS_CDECL()
-    static Ret RCMP_DETAIL_CDECL wrapper_cdecl(Args... args) { return call_hook(args...); }
-    static auto get_wrapper(std::integral_constant<cconv, cconv::cdecl_>) { return wrapper_cdecl; }
-#endif
-
-#if RCMP_HAS_STDCALL()
-    static Ret RCMP_DETAIL_STDCALL wrapper_stdcall(Args... args) { return call_hook(args...); }
-    static auto get_wrapper(std::integral_constant<cconv, cconv::stdcall_>) { return wrapper_stdcall; }
-#endif
-
-#if RCMP_HAS_THISCALL()
-    static Ret RCMP_DETAIL_THISCALL wrapper_thiscall(Args... args) { return call_hook(args...); }
-    static auto get_wrapper(std::integral_constant<cconv, cconv::thiscall_>) { return wrapper_thiscall; }
-#endif
-
-#if RCMP_HAS_FASTCALL()
-    static Ret RCMP_DETAIL_FASTCALL wrapper_fastcall(Args... args) { return call_hook(args...); }
-    static auto get_wrapper(std::integral_constant<cconv, cconv::fastcall_>) { return wrapper_fastcall; }
-#endif
-
-#if RCMP_HAS_NATIVE_X64_CALL()
-    static Ret wrapper_native_x64(Args... args) { return call_hook(args...); }
-    static auto get_wrapper(std::integral_constant<cconv, cconv::native_x64>) { return wrapper_native_x64; }
-#endif
+    static inline constexpr original_sig_t call_hook = with_signature<call_hook_impl, generic_sig_t>;
 
     static void do_hook(rcmp::address_t original_function, hook_t hook) {
         if (m_original != nullptr) {
@@ -70,10 +44,7 @@ struct hook_impl<generic_signature_t<Ret(Args...), Convention>, Hook, Tags...> {
         }
 
         m_hook.emplace(std::move(hook));
-
-        original_sig_t wrapper_function = get_wrapper(std::integral_constant<cconv, Convention>{});
-
-        m_original = make_raw_hook(original_function, rcmp::bit_cast<void*>(wrapper_function));
+        m_original = make_raw_hook(original_function, rcmp::bit_cast<void*>(call_hook)).template as<original_sig_t>();
     }
 };
 
