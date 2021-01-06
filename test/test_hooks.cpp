@@ -234,6 +234,20 @@ TEST_CASE("fastcall calling convention") {
 
 #endif // RCMP_HAS_FASTCALL()
 
+#if RCMP_GET_PLATFORM() == RCMP_PLATFORM_WIN
+    #if RCMP_GET_ARCH() == RCMP_ARCH_X86
+        constexpr auto member_function_conv = rcmp::cconv::thiscall_;
+    #elif RCMP_GET_ARCH() == RCMP_ARCH_X86_64
+        constexpr auto member_function_conv = rcmp::cconv::native_x64;
+    #endif
+#elif RCMP_GET_PLATFORM() == RCMP_PLATFORM_LINUX
+    #if RCMP_GET_ARCH() == RCMP_ARCH_X86
+        constexpr auto member_function_conv = rcmp::cconv::cdecl_;
+    #elif RCMP_GET_ARCH() == RCMP_ARCH_X86_64
+        constexpr auto member_function_conv = rcmp::cconv::native_x64;
+    #endif
+#endif
+
 TEST_CASE("Pointer-to-member function") {
     struct A {
         int b;
@@ -244,27 +258,14 @@ TEST_CASE("Pointer-to-member function") {
     };
 
 #if RCMP_GET_PLATFORM() == RCMP_PLATFORM_WIN
-    #if RCMP_GET_ARCH() == RCMP_ARCH_X86
-        struct PMF {
-            rcmp::flatten_pmf_t<decltype(&A::f), rcmp::cconv::thiscall_> method;
-        };
-    #elif RCMP_GET_ARCH() == RCMP_ARCH_X86_64
-        struct PMF {
-            rcmp::flatten_pmf_t<decltype(&A::f), rcmp::cconv::native_x64> method;
-        };
-    #endif
+    struct PMF {
+        rcmp::flatten_pmf_t<decltype(&A::f), member_function_conv> method;
+    };
 #elif RCMP_GET_PLATFORM() == RCMP_PLATFORM_LINUX
-    #if RCMP_GET_ARCH() == RCMP_ARCH_X86
-        struct PMF {
-            rcmp::flatten_pmf_t<decltype(&A::f), rcmp::cconv::cdecl_> method;
-            std::uint32_t dummy;
-        };
-    #elif RCMP_GET_ARCH() == RCMP_ARCH_X86_64
-        struct PMF {
-            rcmp::flatten_pmf_t<decltype(&A::f), rcmp::cconv::native_x64> method;
-            std::uint64_t dummy;
-        };
-    #endif
+    struct PMF {
+        rcmp::flatten_pmf_t<decltype(&A::f), member_function_conv> method;
+        std::uintptr_t dummy;
+    };
 #endif
 
     auto A_f = rcmp::bit_cast<PMF>(&A::f).method;
