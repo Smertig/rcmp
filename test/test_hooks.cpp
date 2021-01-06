@@ -111,6 +111,12 @@ TEST_CASE("cdecl calling convention") {
     });
 
     REQUIRE(g1(10, 10.0f) == Approx(198.0f));
+
+    constexpr auto sum = +[](int a, int b) { return a + b; };
+    constexpr auto converted_sum = rcmp::with_signature<sum, rcmp::cdecl_t<int(int, int)>>;
+    REQUIRE(converted_sum(1, 2) == sum(1, 2));
+    STATIC_REQUIRE(std::is_same_v<decltype(sum), int(* const)(int, int)>);
+    STATIC_REQUIRE(std::is_same_v<decltype(converted_sum), int(RCMP_DETAIL_CDECL* const)(int, int)>);
 }
 
 #endif // RCMP_HAS_CDECL()
@@ -143,6 +149,12 @@ TEST_CASE("stdcall calling convention") {
     });
 
     REQUIRE(g2(10, 10) == 198);
+
+    constexpr auto sum = +[](int a, int b) { return a + b; };
+    constexpr auto converted_sum = rcmp::with_signature<sum, rcmp::stdcall_t<int(int, int)>>;
+    REQUIRE(converted_sum(1, 2) == sum(1, 2));
+    STATIC_REQUIRE(std::is_same_v<decltype(sum), int(* const)(int, int)>);
+    STATIC_REQUIRE(std::is_same_v<decltype(converted_sum), int(RCMP_DETAIL_STDCALL* const)(int, int)>);
 }
 
 #endif // RCMP_HAS_STDCALL()
@@ -165,6 +177,12 @@ TEST_CASE("thiscall calling convention") {
     });
 
     REQUIRE(g3(10, 10) == 198);
+
+    constexpr auto sum = +[](int a, int b) { return a + b; };
+    constexpr auto converted_sum = rcmp::with_signature<sum, rcmp::thiscall_t<int(int, int)>>;
+    REQUIRE(converted_sum(1, 2) == sum(1, 2));
+    STATIC_REQUIRE(std::is_same_v<decltype(sum), int(* const)(int, int)>);
+    STATIC_REQUIRE(std::is_same_v<decltype(converted_sum), int(RCMP_DETAIL_THISCALL* const)(int, int)>);
 }
 
 #endif // RCMP_HAS_THISCALL()
@@ -197,6 +215,12 @@ TEST_CASE("fastcall calling convention") {
     });
 
     REQUIRE(g4(10, 10) == 198);
+
+    constexpr auto sum = +[](int a, int b) { return a + b; };
+    constexpr auto converted_sum = rcmp::with_signature<sum, rcmp::fastcall_t<int(int, int)>>;
+    REQUIRE(converted_sum(1, 2) == sum(1, 2));
+    STATIC_REQUIRE(std::is_same_v<decltype(sum), int(* const)(int, int)>);
+    STATIC_REQUIRE(std::is_same_v<decltype(converted_sum), int(RCMP_DETAIL_FASTCALL* const)(int, int)>);
 }
 
 #endif // RCMP_HAS_FASTCALL()
