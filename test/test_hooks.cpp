@@ -273,38 +273,40 @@ TEST_CASE("Pointer-to-member function") {
     REQUIRE(A_f(&a, 10) == a.f(10));
 }
 
+struct AV {
+    int b = 5;
+
+    NO_OPTIMIZE
+    virtual int f(int a) const {
+        return a + b;
+    }
+};
+
+// prevent devirtualization
+NO_OPTIMIZE
+int call_f(AV& av, int arg) {
+    return av.f(arg);
+}
+
 TEST_CASE("vtable hooking") {
-    struct A {
-        int b = 5;
-
-        NO_OPTIMIZE
-        virtual int f(int a) const {
-            return a + b;
-        }
-    };
-
     using vtable_t = std::array<rcmp::address_t, 1>;
 
-    struct A2 {
+    struct AV2 {
         vtable_t* vtable;
         int b;
     };
 
-    static_assert(sizeof(A) == sizeof(A2));
+    static_assert(sizeof(AV) == sizeof(AV2));
 
-    auto prevent_devirtualization = [](A& a) {
-        REQUIRE(a.f(10) == 15);
+    AV av;
+    REQUIRE(call_f(av, 10) == 15);
 
-        auto hook = [](auto original, auto self, int arg) -> int {
-            return 2 * original(self, arg + 1);
-        };
-
-        auto& vtable = *rcmp::bit_cast<A2*>(&a)->vtable;
-        rcmp::hook_indirect_function<rcmp::generic_signature_t<int(const A*, int), member_function_conv>>(&vtable[0], hook);
-
-        REQUIRE(a.f(10) == 32);
+    auto hook = [](auto original, auto self, int arg) -> int {
+        return 2 * original(self, arg + 1);
     };
 
-    A a;
-    prevent_devirtualization(a);
+    auto& vtable = *rcmp::bit_cast<AV2*>(&av)->vtable;
+    rcmp::hook_indirect_function<rcmp::generic_signature_t<int(const AV*, int), member_function_conv>>(&vtable[0], hook);
+
+    REQUIRE(call_f(av, 10) == 32);
 }
