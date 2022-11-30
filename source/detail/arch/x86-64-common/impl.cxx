@@ -265,7 +265,7 @@ std::unique_ptr<std::byte[]> relocate_function(rcmp::address_t address, std::siz
 } // unnamed namespace
 
 // returns relocated original address
-rcmp::address_t rcmp::make_raw_hook(rcmp::address_t original_function, rcmp::address_t wrapper_function) {
+rcmp::address_t rcmp::detail::make_x86_x86_64_raw_hook(rcmp::address_t original_function, rcmp::address_t wrapper_function) {
     auto new_original = relocate_function(original_function, g_jmp_size);
 
     make_jmp(original_function, wrapper_function);
