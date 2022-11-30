@@ -75,14 +75,32 @@ struct HookIndirectPolicy {
 
 } // namespace detail
 
+template <class Policy, class Signature, class... Tags, class Hook>
+void generic_hook_function(rcmp::address_t original_address, Hook&& hook) {
+    detail::hook_impl<
+        to_generic_signature<Signature>,
+        std::decay_t<Hook>,
+        Hook, Tags...
+    >::template do_hook<Policy>(original_address, std::forward<Hook>(hook));
+}
+
+template <class Policy, auto Address, class Signature, class... Tags, class Hook>
+void generic_hook_function(Hook&& hook) {
+    static_assert(std::is_constructible_v<rcmp::address_t, decltype(Address)>);
+
+    return rcmp::generic_hook_function<
+        Policy,
+        Signature,
+        std::integral_constant<decltype(Address), Address>, Tags...
+    >(Address, std::forward<Hook>(hook));
+}
+
 #if defined(RCMP_HAS_HOOK_PROLOG_POLICY)
 template <auto FunctionAddress, class Signature, class F>
 void hook_function(F&& hook) {
     static_assert(std::is_constructible_v<rcmp::address_t, decltype(FunctionAddress)>);
 
-    detail::hook_impl<to_generic_signature<Signature>, std::decay_t<F>,
-        std::integral_constant<decltype(FunctionAddress), FunctionAddress>
-    >::template do_hook<detail::HookPrologPolicy>(FunctionAddress, std::forward<F>(hook));
+    rcmp::generic_hook_function<detail::HookPrologPolicy, FunctionAddress, Signature>(std::forward<F>(hook));
 }
 
 template <auto Function, class F>
@@ -92,21 +110,19 @@ void hook_function(F&& hook) {
     static_assert(std::is_pointer_v<Signature>,                         "OriginalFunction is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
     static_assert(std::is_function_v<std::remove_pointer_t<Signature>>, "OriginalFunction is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
 
-    detail::hook_impl<to_generic_signature<Signature>, std::decay_t<F>,
+    rcmp::generic_hook_function<detail::HookPrologPolicy, Signature,
         std::integral_constant<Signature, Function>
-    >::template do_hook<detail::HookPrologPolicy>(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
+    >(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
 }
 
 template <class Tag, class Signature, class F>
 void hook_function(rcmp::address_t function_address, F&& hook) {
-    detail::hook_impl<to_generic_signature<Signature>, std::decay_t<F>,
-        Tag
-    >::template do_hook<detail::HookPrologPolicy>(function_address, std::forward<F>(hook));
+    rcmp::generic_hook_function<detail::HookPrologPolicy, Signature, Tag>(function_address, std::forward<F>(hook));
 }
 
 template <class Signature, class F>
 void hook_function(rcmp::address_t function_address, F&& hook) {
-    hook_function<class Tag, Signature>(function_address, std::forward<F>(hook));
+    rcmp::hook_function<class Tag, Signature>(function_address, std::forward<F>(hook));
 }
 #endif
 
@@ -115,21 +131,17 @@ template <auto IndirectFunctionAddress, class Signature, class F>
 void hook_indirect_function(F&& hook) {
     static_assert(std::is_constructible_v<rcmp::address_t, decltype(IndirectFunctionAddress)>);
 
-    detail::hook_impl<to_generic_signature<Signature>, std::decay_t<F>,
-        std::integral_constant<decltype(IndirectFunctionAddress), IndirectFunctionAddress>
-    >::template do_hook<detail::HookIndirectPolicy>(IndirectFunctionAddress, std::forward<F>(hook));
+    rcmp::generic_hook_function<detail::HookIndirectPolicy, IndirectFunctionAddress, Signature>(std::forward<F>(hook));
 }
 
 template <class Tag, class Signature, class F>
 void hook_indirect_function(rcmp::address_t indirect_function_address, F&& hook) {
-    detail::hook_impl<to_generic_signature<Signature>, std::decay_t<F>,
-        Tag
-    >::template do_hook<detail::HookIndirectPolicy>(indirect_function_address, std::forward<F>(hook));
+    rcmp::generic_hook_function<detail::HookIndirectPolicy, Signature, Tag>(indirect_function_address, std::forward<F>(hook));
 }
 
 template <class Signature, class F>
 void hook_indirect_function(rcmp::address_t indirect_function_address, F&& hook) {
-    hook_indirect_function<class Tag, Signature>(indirect_function_address, std::forward<F>(hook));
+    rcmp::hook_indirect_function<class Tag, Signature>(indirect_function_address, std::forward<F>(hook));
 }
 #endif
 
