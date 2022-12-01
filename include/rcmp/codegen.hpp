@@ -47,32 +47,6 @@ struct hook_impl<generic_signature_t<Ret(Args...), Convention>, Hook, Tags...> {
     }
 };
 
-#if RCMP_GET_ARCH() == RCMP_ARCH_X86 || RCMP_GET_ARCH() == RCMP_ARCH_X86_64
-
-// returns relocated original function address
-rcmp::address_t make_x86_x86_64_raw_hook(rcmp::address_t original_function, rcmp::address_t wrapper_function);
-
-#define RCMP_HAS_HOOK_PROLOG_POLICY
-struct HookPrologPolicy {
-    static rcmp::address_t make_raw_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
-        // `address` is an address of function body start
-        return make_x86_x86_64_raw_hook(address, wrapper_function);
-    }
-};
-
-#define RCMP_HAS_HOOK_INDIRECT_POLICY
-struct HookIndirectPolicy {
-    static rcmp::address_t make_raw_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
-        // `address` is an address of memory region (`sizeof(void*)` bytes) storing address of function body
-        auto& function_address_ref = *address.as_ptr<rcmp::address_t>();
-
-        rcmp::unprotect_memory(&function_address_ref, sizeof(function_address_ref));
-        return std::exchange(function_address_ref, wrapper_function);
-    }
-};
-
-#endif
-
 } // namespace detail
 
 template <class Policy, class Signature, class... Tags, class Hook>
@@ -95,54 +69,7 @@ void generic_hook_function(Hook&& hook) {
     >(Address, std::forward<Hook>(hook));
 }
 
-#if defined(RCMP_HAS_HOOK_PROLOG_POLICY)
-template <auto FunctionAddress, class Signature, class F>
-void hook_function(F&& hook) {
-    static_assert(std::is_constructible_v<rcmp::address_t, decltype(FunctionAddress)>);
-
-    rcmp::generic_hook_function<detail::HookPrologPolicy, FunctionAddress, Signature>(std::forward<F>(hook));
-}
-
-template <auto Function, class F>
-void hook_function(F&& hook) {
-    using Signature = decltype(Function);
-
-    static_assert(std::is_pointer_v<Signature>,                         "OriginalFunction is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
-    static_assert(std::is_function_v<std::remove_pointer_t<Signature>>, "OriginalFunction is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
-
-    rcmp::generic_hook_function<detail::HookPrologPolicy, Signature,
-        std::integral_constant<Signature, Function>
-    >(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
-}
-
-template <class Tag, class Signature, class F>
-void hook_function(rcmp::address_t function_address, F&& hook) {
-    rcmp::generic_hook_function<detail::HookPrologPolicy, Signature, Tag>(function_address, std::forward<F>(hook));
-}
-
-template <class Signature, class F>
-void hook_function(rcmp::address_t function_address, F&& hook) {
-    rcmp::hook_function<class Tag, Signature>(function_address, std::forward<F>(hook));
-}
-#endif
-
-#if defined(RCMP_HAS_HOOK_INDIRECT_POLICY)
-template <auto IndirectFunctionAddress, class Signature, class F>
-void hook_indirect_function(F&& hook) {
-    static_assert(std::is_constructible_v<rcmp::address_t, decltype(IndirectFunctionAddress)>);
-
-    rcmp::generic_hook_function<detail::HookIndirectPolicy, IndirectFunctionAddress, Signature>(std::forward<F>(hook));
-}
-
-template <class Tag, class Signature, class F>
-void hook_indirect_function(rcmp::address_t indirect_function_address, F&& hook) {
-    rcmp::generic_hook_function<detail::HookIndirectPolicy, Signature, Tag>(indirect_function_address, std::forward<F>(hook));
-}
-
-template <class Signature, class F>
-void hook_indirect_function(rcmp::address_t indirect_function_address, F&& hook) {
-    rcmp::hook_indirect_function<class Tag, Signature>(indirect_function_address, std::forward<F>(hook));
-}
-#endif
-
 } // namespace rcmp
+
+#include "hook_policy/hook_prolog_policy.hpp"
+#include "hook_policy/hook_indirect_policy.hpp"
