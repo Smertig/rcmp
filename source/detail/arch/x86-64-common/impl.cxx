@@ -9,6 +9,8 @@
 
 static_assert(RCMP_GET_ARCH() == RCMP_ARCH_X86 || RCMP_GET_ARCH() == RCMP_ARCH_X86_64);
 
+static std::size_t opcode_length(rcmp::address_t address);
+
 namespace {
 
 std::string hex_dump(rcmp::address_t address, std::size_t count) {
@@ -155,7 +157,7 @@ std::size_t relocate_opcode(rcmp::address_t from, rcmp::address_t to) {
         to = &dummy;
     }
 
-    const auto cmd_len    = rcmp::opcode_length(from);
+    const auto cmd_len    = opcode_length(from);
     const auto bytes_from = from.as_ptr<const uint8_t>();
     const auto bytes_to   = to.as_ptr<uint8_t>();
 
@@ -236,7 +238,7 @@ std::unique_ptr<std::byte[]> relocate_function(rcmp::address_t address, std::siz
 
         while (from_it < address + bytes) {
             out_size += relocate_opcode(from_it, nullptr);
-            from_it  += rcmp::opcode_length(from_it);
+            from_it  += opcode_length(from_it);
         }
         return out_size;
     }();
@@ -250,7 +252,7 @@ std::unique_ptr<std::byte[]> relocate_function(rcmp::address_t address, std::siz
 
     while (from_it < address + bytes) {
         out_it  += relocate_opcode(from_it, out_it);
-        from_it += rcmp::opcode_length(from_it);
+        from_it += opcode_length(from_it);
     }
 
     rcmp::unprotect_memory(address, from_it - address);
@@ -298,3 +300,7 @@ rcmp::address_t rcmp::detail::make_x86_x86_64_raw_hook(rcmp::address_t original_
 #elif RCMP_GET_COMPILER() == RCMP_COMPILER_MSVC
     #pragma warning(pop)
 #endif
+
+std::size_t opcode_length(rcmp::address_t address) {
+    return nmd_x86_ldisasm(address.as_ptr(), (std::numeric_limits<std::size_t>::max)(), RCMP_GET_ARCH() == RCMP_ARCH_X86 ? NMD_X86_MODE_32 : NMD_X86_MODE_64);
+}

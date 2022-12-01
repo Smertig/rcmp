@@ -23,8 +23,6 @@ void set_opcode(rcmp::address_t where, Range&& bytes) {
     std::memcpy(where.as_ptr(), std::data(bytes), std::size(bytes));
 }
 
-std::size_t opcode_length(rcmp::address_t address);
-
 std::unique_ptr<std::byte[]> allocate_code(std::size_t count);
 
 } // namespace rcmp
