@@ -1,9 +1,6 @@
 name: Build On Push
 
-on:
-  push:
-    branches:
-      - master
+on: [push, pull_request]
 
 env:
   BUILD_TYPE: Debug
@@ -18,23 +15,23 @@ jobs:
       matrix:
         include:
         - name: Windows x86
-          os: windows-latest
+          os: windows-2022
           test_binary_path: ./test/${BUILD_TYPE}/rcmp-tests
           cmake_arch: -A Win32
 
         - name: Windows x86-64
-          os: windows-latest
+          os: windows-2022
           test_binary_path: ./test/${BUILD_TYPE}/rcmp-tests
           cmake_arch: -A x64
 
         - name: Ubuntu x86
-          os: ubuntu-latest
+          os: ubuntu-20.04
           test_binary_path: ./test/rcmp-tests
           cmake_arch: -DCMAKE_CXX_FLAGS=-m32
           packages: sudo apt install g++-multilib
 
         - name: Ubuntu x86-64
-          os: ubuntu-latest
+          os: ubuntu-20.04
           test_binary_path: ./test/rcmp-tests
 
     steps:
