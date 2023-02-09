@@ -20,8 +20,4 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Debug -A Win32
 
       - name: Inspect solution
-        uses: muno92/resharper_inspectcode@1.6.7
-        with:
-          exclude: "**/external/**.*"
-          failOnIssue: 0
-          solutionPath: ${{github.workspace}}/build/rcmp.sln
+        uses: JetBrains/qodana-action@v2022.3.3
