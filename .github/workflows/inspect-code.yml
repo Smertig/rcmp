@@ -1,0 +1,27 @@
+name: Inspect Code with R++
+
+on: [push, pull_request]
+
+jobs:
+  inspect:
+    runs-on: windows-2022
+    name: Inspect Code
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{github.workspace}}/build
+        run: |
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -A Win32
+
+      - name: Inspect solution
+        uses: muno92/resharper_inspectcode@1.6.7
+        with:
+          exclude: "**/external/**.*"
+          failOnIssue: 0
+          solutionPath: ${{github.workspace}}/build/rcmp.sln
