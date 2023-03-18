@@ -8,7 +8,7 @@ env:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    name: Build and test rcmp for gcc-${{ matrix.gcc_version }} on ${{ matrix.platform }}
+    name: gcc-${{ matrix.gcc_version }} (${{ matrix.platform }})
     continue-on-error: true
     strategy:
       matrix:

@@ -8,7 +8,7 @@ env:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    name: Build and test rcmp for clang-${{ matrix.clang_version }} on ${{ matrix.platform }}
+    name: clang-${{ matrix.clang_version }} (${{ matrix.platform }})
     continue-on-error: true
     strategy:
       matrix:

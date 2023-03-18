@@ -8,15 +8,15 @@ env:
 jobs:
   build:
     runs-on: windows-2022
-    name: Build and test rcmp for ${{ matrix.name }}
+    name: MSVC (${{ matrix.platform }})
     continue-on-error: true
     strategy:
       matrix:
         include:
-          - name: Windows x86
+          - platform: x86
             cmake_arch: Win32
 
-          - name: Windows x86-64
+          - platform: x86-64
             cmake_arch: x64
 
     steps:
