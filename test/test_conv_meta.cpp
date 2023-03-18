@@ -8,12 +8,14 @@ TEST_CASE("Convention support") {
     using namespace rcmp;
 
 #if RCMP_GET_ARCH() == RCMP_ARCH_X86
+    std::puts("RCMP_ARCH_X86");
     STATIC_REQUIRE(is_convention_supported<cconv::cdecl_>);
     STATIC_REQUIRE(is_convention_supported<cconv::stdcall_>);
     STATIC_REQUIRE(is_convention_supported<cconv::thiscall_>);
     STATIC_REQUIRE(is_convention_supported<cconv::fastcall_>);
     STATIC_REQUIRE(!is_convention_supported<cconv::native_x64>);
 #elif RCMP_GET_ARCH() == RCMP_ARCH_X86_64
+    std::puts("RCMP_ARCH_X86_64");
     STATIC_REQUIRE(!is_convention_supported<cconv::cdecl_>);
     STATIC_REQUIRE(!is_convention_supported<cconv::stdcall_>);
     STATIC_REQUIRE(!is_convention_supported<cconv::thiscall_>);
