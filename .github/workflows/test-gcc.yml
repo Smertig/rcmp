@@ -64,7 +64,7 @@ jobs:
             os: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1.3
