@@ -119,7 +119,7 @@ jobs:
         shell: bash
         working-directory: ${{runner.workspace}}/build
         run: |
-          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${{ matrix.platform == 'x86' && '-DCMAKE_CXX_FLAGS=-m32' }}
 
       - name: Build
         working-directory: ${{runner.workspace}}/build
