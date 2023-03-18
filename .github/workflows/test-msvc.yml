@@ -1,0 +1,42 @@
+name: Test MSVC
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    runs-on: windows-2022
+    name: Build and test rcmp for ${{ matrix.name }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - name: Windows x86
+            cmake_arch: Win32
+
+          - name: Windows x86-64
+            cmake_arch: x64
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: |
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -A ${{matrix.cmake_arch}}
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE
+
+      - name: Run tests
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: ./test/${BUILD_TYPE}/rcmp-tests

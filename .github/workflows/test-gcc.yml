@@ -1,0 +1,92 @@
+name: Test gcc
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    name: Build and test rcmp for gcc-${{ matrix.gcc_version }} on ${{ matrix.platform }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          # x86
+          - gcc_version: 7
+            platform: x86
+            os: ubuntu-20.04
+
+          - gcc_version: 8
+            platform: x86
+            os: ubuntu-20.04
+
+          - gcc_version: 9
+            platform: x86
+            os: ubuntu-20.04
+
+          - gcc_version: 10
+            platform: x86
+            os: ubuntu-20.04
+
+          - gcc_version: 11
+            platform: x86
+            os: ubuntu-20.04
+
+          - gcc_version: 12
+            platform: x86
+            os: ubuntu-22.04
+
+          # x64
+          - gcc_version: 7
+            platform: x64
+            os: ubuntu-20.04
+
+          - gcc_version: 8
+            platform: x64
+            os: ubuntu-20.04
+
+          - gcc_version: 9
+            platform: x64
+            os: ubuntu-20.04
+
+          - gcc_version: 10
+            platform: x64
+            os: ubuntu-20.04
+
+          - gcc_version: 11
+            platform: x64
+            os: ubuntu-20.04
+
+          - gcc_version: 12
+            platform: x64
+            os: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1.3
+        with:
+          version: ${{matrix.gcc_version}}
+          platform: ${{matrix.platform}}
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: |
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE
+
+      - name: Run tests
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: ./test/rcmp-tests
