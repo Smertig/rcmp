@@ -77,8 +77,9 @@ namespace detail {
     #endif
 
     #if RCMP_GET_COMPILER() == RCMP_COMPILER_GCC
-        #if __GNUC__ == 10 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 0
-            #error gcc-10.1 does not work well with template specialization by function pointer that has custom calling-convention
+        #if (RCMP_GET_GCC_VERSION() >= RCMP_MAKE_GCC_VERSION(9, 4, 0) && RCMP_GET_GCC_VERSION() < RCMP_MAKE_GCC_VERSION(10, 0, 0)) || \
+             RCMP_GET_GCC_VERSION() == RCMP_MAKE_GCC_VERSION(10, 1, 0)
+            #warning "Your gcc version doesn't work well with template specialization by function pointer that has custom calling-convention"
         #endif
     #endif
 

@@ -18,6 +18,8 @@
     #define RCMP_GET_COMPILER() RCMP_COMPILER_CLANG
 #elif defined(__GNUC__)
     #define RCMP_GET_COMPILER() RCMP_COMPILER_GCC
+    #define RCMP_MAKE_GCC_VERSION(major, minor, patch) ((major) * 10000 + (minor) * 100 + (patch))
+    #define RCMP_GET_GCC_VERSION() RCMP_MAKE_GCC_VERSION(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 #elif defined(_MSC_VER)
     #define RCMP_GET_COMPILER() RCMP_COMPILER_MSVC
 #else
