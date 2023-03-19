@@ -96,7 +96,7 @@ TEST_CASE("Hooks") {
 
 #else // defined(_MSC_VER)
 
-    [[gnu::cdecl]]
+    RCMP_DETAIL_CDECL
     NO_OPTIMIZE float g1(int a, float b) {
         return a * b;
     }
@@ -134,7 +134,7 @@ TEST_CASE("cdecl calling convention") {
 
 #else // defined(_MSC_VER)
 
-    [[gnu::stdcall]]
+    RCMP_DETAIL_STDCALL
     NO_OPTIMIZE float g2(int a, float b) {
         return a * b;
     }
@@ -171,7 +171,7 @@ struct C {
 
 #else // defined(_MSC_VER)
 
-    [[gnu::thiscall]]
+    RCMP_DETAIL_THISCALL
     NO_OPTIMIZE static float g3(int a, float b) {
         return a * b + 1;
     }
@@ -208,7 +208,7 @@ TEST_CASE("thiscall calling convention") {
 
 #else // defined(_MSC_VER)
 
-    [[gnu::fastcall]]
+    RCMP_DETAIL_FASTCALL
     NO_OPTIMIZE float g4(int a, float b) {
         return a * b;
     }
