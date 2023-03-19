@@ -31,5 +31,5 @@ void generic_hook_function(Hook&& hook) {
 
 } // namespace rcmp
 
-#include "hook_policy/hook_prolog_policy.hpp"
-#include "hook_policy/hook_indirect_policy.hpp"
+#include "detail/hook_policy/prolog_policy.hpp"
+#include "detail/hook_policy/indirect_policy.hpp"
