@@ -1,0 +1,86 @@
+name: Build and test
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    name: "${{matrix.title}} (${{matrix.cc}}, ${{matrix.arch}})"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # gcc
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-7", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-7", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-8", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-8", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-9", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-9", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-10", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-10", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-11", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-11", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "gcc-12", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "gcc-12", arch: "x64" }
+
+          # clang
+          - { title: "Linux", os: "ubuntu-18.04", cc: "clang-5.0", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-18.04", cc: "clang-5.0", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-6.0", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-6.0", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-7", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-7", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-8", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-8", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-9", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-9", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-10", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-10", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-11", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-11", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-12", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-12", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-13", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-13", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-14", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-14", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-15", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-15", arch: "x64" }
+
+          # msvc
+          - { title: "Windows" , os: "windows-2018", cc: "vs2017", arch: "x86" }
+          - { title: "Windows" , os: "windows-2018", cc: "vs2017", arch: "x64" }
+          - { title: "Windows" , os: "windows-2020", cc: "vs2019", arch: "x86" }
+          - { title: "Windows" , os: "windows-2020", cc: "vs2019", arch: "x64" }
+          - { title: "Windows" , os: "windows-2022", cc: "vs2022", arch: "x86" }
+          - { title: "Windows" , os: "windows-2022", cc: "vs2022", arch: "x64" }
+
+    steps:
+      - name: "Checkout rcmp"
+        uses: actions/checkout@v3
+        with:
+          path: "source"
+
+      - name: "Checkout build-actions"
+        uses: actions/checkout@v3
+        with:
+          repository: build-actions/build-actions
+          path: "build-actions"
+          ref: "9906d2d5ce233f2fb64626d92616af9cb9182f2d"
+
+      - name: "Python"
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+
+      - name: "Prepare & Configure & Build & Test"
+        run: python build-actions/action.py
+          --step=all
+          --compiler=${{matrix.cc}}
+          --architecture=${{matrix.arch}}
+          --config=source/.github/workflows/build-config.json
+          --source-dir=source
+          --build-type=Debug
+          --build-defs=${{matrix.defs}}
