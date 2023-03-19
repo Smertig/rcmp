@@ -16,7 +16,7 @@ jobs:
           - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-7", arch: "x64" }
           - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-8", arch: "x86" }
           - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-8", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-9", arch: "x86" }
+          #- { title: "Linux", os: "ubuntu-20.04", cc: "gcc-9", arch: "x86" } # bug with calling conventions
           - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-9", arch: "x64" }
           - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-10", arch: "x86" }
           - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-10", arch: "x64" }
