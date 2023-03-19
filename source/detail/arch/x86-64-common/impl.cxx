@@ -268,11 +268,14 @@ std::unique_ptr<std::byte[]> relocate_function(rcmp::address_t address, std::siz
 } // unnamed namespace
 
 // returns relocated original address
-rcmp::address_t rcmp::detail::make_x86_x86_64_raw_hook(rcmp::address_t original_function, rcmp::address_t wrapper_function) {
+rcmp::address_t rcmp::detail::install_x86_x86_64_raw_hook(rcmp::address_t original_function, rcmp::address_t wrapper_function) {
+    // Move the beginning of `original_function` to a new address
     auto new_original = relocate_function(original_function, g_jmp_size);
 
+    // Jump from `original_function` to our wrapper
     make_jmp(original_function, wrapper_function);
 
+    // Return address of moved `original_function`, so it can be later called from `wrapper_function`
     // force memory leak
     return new_original.release();
 }

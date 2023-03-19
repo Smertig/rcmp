@@ -9,12 +9,12 @@ namespace detail {
 #define RCMP_HAS_HOOK_PROLOG_POLICY
 
 // returns relocated original function address
-rcmp::address_t make_x86_x86_64_raw_hook(rcmp::address_t original_function, rcmp::address_t wrapper_function);
+rcmp::address_t install_x86_x86_64_raw_hook(rcmp::address_t original_function, rcmp::address_t wrapper_function);
 
 struct HookPrologPolicy {
-    static rcmp::address_t make_raw_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
+    static rcmp::address_t install_raw_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
         // `address` is an address of function body start
-        return make_x86_x86_64_raw_hook(address, wrapper_function);
+        return install_x86_x86_64_raw_hook(address, wrapper_function);
     }
 };
 

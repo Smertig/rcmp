@@ -9,7 +9,7 @@ namespace detail {
 #define RCMP_HAS_HOOK_INDIRECT_POLICY
 
 struct HookIndirectPolicy {
-    static rcmp::address_t make_raw_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
+    static rcmp::address_t install_raw_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
         // `address` is an address of memory region (`sizeof(void*)` bytes) storing address of function body
         auto& function_address_ref = *address.as_ptr<rcmp::address_t>();
 
