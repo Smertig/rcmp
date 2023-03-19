@@ -1,5 +1,9 @@
 #pragma once
 
+#include <rcmp/memory.hpp>
+
+#include <utility>
+
 namespace rcmp {
 
 namespace detail {
