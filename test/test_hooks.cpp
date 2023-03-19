@@ -88,20 +88,9 @@ TEST_CASE("Hooks") {
 
 #if RCMP_HAS_CDECL()
 
-#if defined(_MSC_VER)
-
-    NO_OPTIMIZE float __cdecl g1(int a, float b) {
-        return a * b;
-    }
-
-#else // defined(_MSC_VER)
-
-    RCMP_DETAIL_CDECL
-    NO_OPTIMIZE float g1(int a, float b) {
-        return a * b;
-    }
-
-#endif
+NO_OPTIMIZE float RCMP_DETAIL_CDECL g1(int a, float b) {
+    return a * b;
+}
 
 static_assert(std::is_same_v<decltype(&g1), float(RCMP_DETAIL_CDECL*)(int, float)>);
 static_assert(std::is_same_v<rcmp::to_generic_signature<decltype(&g1)>, rcmp::cdecl_t<float(int, float)>>);
@@ -126,20 +115,9 @@ TEST_CASE("cdecl calling convention") {
 
 #if RCMP_HAS_STDCALL()
 
-#if defined(_MSC_VER)
-
-    NO_OPTIMIZE float __stdcall g2(int a, float b) {
-        return a * b;
-    }
-
-#else // defined(_MSC_VER)
-
-    RCMP_DETAIL_STDCALL
-    NO_OPTIMIZE float g2(int a, float b) {
-        return a * b;
-    }
-
-#endif
+NO_OPTIMIZE float RCMP_DETAIL_STDCALL g2(int a, float b) {
+    return a * b;
+}
 
 static_assert(std::is_same_v<decltype(&g2), float(RCMP_DETAIL_STDCALL*)(int, float)>);
 static_assert(std::is_same_v<rcmp::to_generic_signature<decltype(&g2)>, rcmp::stdcall_t<float(int, float)>>);
@@ -163,20 +141,9 @@ TEST_CASE("stdcall calling convention") {
 #if RCMP_HAS_THISCALL()
 
 struct C {
-#if defined(_MSC_VER)
-
-    NO_OPTIMIZE static float __thiscall g3(int a, float b) {
+    NO_OPTIMIZE static float RCMP_DETAIL_THISCALL g3(int a, float b) {
         return a * b + 1;
     }
-
-#else // defined(_MSC_VER)
-
-    RCMP_DETAIL_THISCALL
-    NO_OPTIMIZE static float g3(int a, float b) {
-        return a * b + 1;
-    }
-
-#endif
 };
 
 static_assert(std::is_same_v<decltype(&C::g3), float(RCMP_DETAIL_THISCALL*)(int, float)>);
@@ -200,20 +167,9 @@ TEST_CASE("thiscall calling convention") {
 
 #if RCMP_HAS_FASTCALL()
 
-#if defined(_MSC_VER)
-
-    NO_OPTIMIZE float __fastcall g4(int a, float b) {
-        return a * b;
-    }
-
-#else // defined(_MSC_VER)
-
-    RCMP_DETAIL_FASTCALL
-    NO_OPTIMIZE float g4(int a, float b) {
-        return a * b;
-    }
-
-#endif
+NO_OPTIMIZE float RCMP_DETAIL_FASTCALL g4(int a, float b) {
+    return a * b;
+}
 
 static_assert(std::is_same_v<decltype(&g4), float(RCMP_DETAIL_FASTCALL*)(int, float)>);
 static_assert(std::is_same_v<rcmp::to_generic_signature<decltype(&g4)>, rcmp::fastcall_t<float(int, float)>>);
