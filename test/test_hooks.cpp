@@ -319,6 +319,6 @@ TEST_CASE("compile-time addresses") {
     }
 
     // Just to check compilation, should not be called
-    rcmp::hook_indirect_function<0x0, void()>([](auto) {});
-    rcmp::hook_function<0x0, void()>([](auto) {});
+    rcmp::hook_indirect_function<0x1, void()>([](auto) {});
+    rcmp::hook_function<0x1, void()>([](auto) {});
 }
