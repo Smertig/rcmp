@@ -30,6 +30,15 @@ struct HookIndirectPolicy {
 
 #if defined(RCMP_HAS_HOOK_INDIRECT_POLICY)
 
+template <class Tag, class Signature, class F>
+void hook_indirect_function(rcmp::address_t indirect_function_address, F&& hook) {
+    using wrapped_policy_t = detail::WithGlobalState<
+        detail::HookIndirectPolicy,
+        Tag
+    >;
+    rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(indirect_function_address, std::forward<F>(hook));
+}
+
 template <auto IndirectFunctionAddress, class Signature, class F>
 void hook_indirect_function(F&& hook) {
     static_assert(std::is_constructible_v<rcmp::address_t, decltype(IndirectFunctionAddress)>);
@@ -39,15 +48,6 @@ void hook_indirect_function(F&& hook) {
         std::integral_constant<decltype(IndirectFunctionAddress), IndirectFunctionAddress>
     >;
     rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(IndirectFunctionAddress, std::forward<F>(hook));
-}
-
-template <class Tag, class Signature, class F>
-void hook_indirect_function(rcmp::address_t indirect_function_address, F&& hook) {
-    using wrapped_policy_t = detail::WithGlobalState<
-        detail::HookIndirectPolicy,
-        Tag
-    >;
-    rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(indirect_function_address, std::forward<F>(hook));
 }
 
 template <class Signature, class F>

@@ -27,6 +27,18 @@ struct HookPrologPolicy {
 #if defined(RCMP_HAS_HOOK_PROLOG_POLICY)
 
 // TODO: cleanup copy-paste
+template <class Tag, class Signature, class F>
+void hook_function(rcmp::address_t function_address, F&& hook) {
+    using wrapped_policy_t = detail::WithGlobalState<
+        detail::HookPrologPolicy,
+        Tag
+    >;
+    rcmp::generic_hook_function<
+        wrapped_policy_t::template Policy,
+        Signature
+    >(function_address, std::forward<F>(hook));
+}
+
 template <auto FunctionAddress, class Signature, class F>
 void hook_function(F&& hook) {
     static_assert(std::is_constructible_v<rcmp::address_t, decltype(FunctionAddress)>);
@@ -50,18 +62,6 @@ void hook_function(F&& hook) {
         std::integral_constant<Signature, Function>
     >;
     rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
-}
-
-template <class Tag, class Signature, class F>
-void hook_function(rcmp::address_t function_address, F&& hook) {
-    using wrapped_policy_t = detail::WithGlobalState<
-        detail::HookPrologPolicy,
-        Tag
-    >;
-    rcmp::generic_hook_function<
-        wrapped_policy_t::template Policy,
-        Signature
-    >(function_address, std::forward<F>(hook));
 }
 
 template <class Signature, class F>
