@@ -21,7 +21,7 @@ struct WithGlobalState {
         static HookState* allocate_state(rcmp::address_t address) {
             static bool allocated = false;
             if (std::exchange(allocated, true)) {
-                throw rcmp::error("double hook of %" PRIXPTR, address.as_number());
+                throw rcmp::error("Cannot install hook using same state twice, try to use different `Tag` (hooked address: %" PRIXPTR ")", address.as_number());
             }
 
             return &g_state;

@@ -286,7 +286,7 @@ TEST_CASE("double hook") {
     CHECK(f3(42) == 84);
 
     // Hooking with same lambda should fail because of global state
-    CHECK_THROWS_WITH(rcmp::hook_function<&f3>(l), Catch::Contains("double hook of"));
+    CHECK_THROWS_WITH(rcmp::hook_function<&f3>(l), Catch::Contains("Cannot install hook using same state twice"));
     CHECK(f3(42) == 84);
 
     // However, it should work for different lambdas because of different state
