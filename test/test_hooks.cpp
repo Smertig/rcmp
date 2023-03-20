@@ -312,3 +312,13 @@ TEST_CASE("hook with different tags") {
     rcmp::hook_function<class Tag2, decltype(f4)>(rcmp::bit_cast<const void*>(&f4), l);
     CHECK(f4(42) == 44);
 }
+
+TEST_CASE("compile-time addresses") {
+    if ([[maybe_unused]] auto always_true = []{ return true; }()) {
+        return;
+    }
+
+    // Just to check compilation, should not be called
+    rcmp::hook_indirect_function<0x0, void()>([](auto) {});
+    rcmp::hook_function<0x0, void()>([](auto) {});
+}

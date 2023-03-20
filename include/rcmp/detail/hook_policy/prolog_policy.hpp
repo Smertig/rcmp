@@ -35,7 +35,7 @@ void hook_function(F&& hook) {
         detail::HookPrologPolicy,
         std::integral_constant<decltype(FunctionAddress), FunctionAddress>
     >;
-    rcmp::generic_hook_function<wrapped_policy_t::template Policy, FunctionAddress, Signature>(std::forward<F>(hook));
+    rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(FunctionAddress, std::forward<F>(hook));
 }
 
 template <auto Function, class F>

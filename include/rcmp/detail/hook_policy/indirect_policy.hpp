@@ -38,7 +38,7 @@ void hook_indirect_function(F&& hook) {
         detail::HookIndirectPolicy,
         std::integral_constant<decltype(IndirectFunctionAddress), IndirectFunctionAddress>
     >;
-    rcmp::generic_hook_function<wrapped_policy_t::Policy, IndirectFunctionAddress, Signature>(std::forward<F>(hook));
+    rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(IndirectFunctionAddress, std::forward<F>(hook));
 }
 
 template <class Tag, class Signature, class F>

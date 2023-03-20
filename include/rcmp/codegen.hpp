@@ -17,17 +17,6 @@ void generic_hook_function(rcmp::address_t original_address, Hook&& hook) {
     >::template install_hook<Policy>(original_address, std::forward<Hook>(hook));
 }
 
-// TODO: remove this overload
-template <template <class> class Policy, auto Address, class Signature, class Hook>
-void generic_hook_function(Hook&& hook) {
-    static_assert(std::is_constructible_v<rcmp::address_t, decltype(Address)>);
-
-    return rcmp::generic_hook_function<
-        Policy,
-        Signature
-    >(Address, std::forward<Hook>(hook));
-}
-
 } // namespace rcmp
 
 #include "detail/hook_policy/prolog_policy.hpp"
