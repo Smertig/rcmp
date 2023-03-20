@@ -43,11 +43,8 @@ template <auto IndirectFunctionAddress, class Signature, class F>
 void hook_indirect_function(F&& hook) {
     static_assert(std::is_constructible_v<rcmp::address_t, decltype(IndirectFunctionAddress)>);
 
-    using wrapped_policy_t = detail::WithGlobalState<
-        detail::HookIndirectPolicy,
-        std::integral_constant<decltype(IndirectFunctionAddress), IndirectFunctionAddress>
-    >;
-    rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(IndirectFunctionAddress, std::forward<F>(hook));
+    using Tag = std::integral_constant<decltype(IndirectFunctionAddress), IndirectFunctionAddress>;
+    rcmp::hook_indirect_function<Tag, Signature>(IndirectFunctionAddress, std::forward<F>(hook));
 }
 
 template <class Signature, class F>

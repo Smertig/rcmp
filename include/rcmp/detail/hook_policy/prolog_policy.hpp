@@ -26,7 +26,6 @@ struct HookPrologPolicy {
 
 #if defined(RCMP_HAS_HOOK_PROLOG_POLICY)
 
-// TODO: cleanup copy-paste
 template <class Tag, class Signature, class F>
 void hook_function(rcmp::address_t function_address, F&& hook) {
     using wrapped_policy_t = detail::WithGlobalState<
@@ -43,11 +42,8 @@ template <auto FunctionAddress, class Signature, class F>
 void hook_function(F&& hook) {
     static_assert(std::is_constructible_v<rcmp::address_t, decltype(FunctionAddress)>);
 
-    using wrapped_policy_t = detail::WithGlobalState<
-        detail::HookPrologPolicy,
-        std::integral_constant<decltype(FunctionAddress), FunctionAddress>
-    >;
-    rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(FunctionAddress, std::forward<F>(hook));
+    using Tag = std::integral_constant<decltype(FunctionAddress), FunctionAddress>;
+    rcmp::hook_function<Tag, Signature>(FunctionAddress, std::forward<F>(hook));
 }
 
 template <auto Function, class F>
@@ -57,11 +53,8 @@ void hook_function(F&& hook) {
     static_assert(std::is_pointer_v<Signature>,                         "Function is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
     static_assert(std::is_function_v<std::remove_pointer_t<Signature>>, "Function is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
 
-    using wrapped_policy_t = detail::WithGlobalState<
-        detail::HookPrologPolicy,
-        std::integral_constant<Signature, Function>
-    >;
-    rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
+    using Tag = std::integral_constant<Signature, Function>;
+    rcmp::hook_function<Tag, Signature>(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
 }
 
 template <class Signature, class F>
