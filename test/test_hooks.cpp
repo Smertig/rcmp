@@ -314,7 +314,8 @@ TEST_CASE("hook with different tags") {
 }
 
 TEST_CASE("compile-time addresses") {
-    if ([[maybe_unused]] auto always_true = []{ return true; }()) {
+    auto always_true = []{ return true; }();
+    if (always_true) {
         return;
     }
 
