@@ -266,3 +266,49 @@ TEST_CASE("vtable hooking") {
 
     REQUIRE(call_f(av, 10) == 32);
 }
+
+NO_OPTIMIZE
+int f3(int arg) {
+    return arg;
+}
+
+TEST_CASE("double hook") {
+    auto l = [](auto original, auto arg) {
+        return original(arg) * 2;
+    };
+
+    auto l2 = [](auto original, auto arg) {
+        return original(arg) * 2;
+    };
+
+    CHECK(f3(42) == 42);
+    rcmp::hook_function<&f3>(l);
+    CHECK(f3(42) == 84);
+
+    // Hooking with same lambda should fail because of global state
+    CHECK_THROWS_WITH(rcmp::hook_function<&f3>(l), Catch::Contains("double hook of"));
+    CHECK(f3(42) == 84);
+
+    // However, it should work for different lambdas because of different state
+    rcmp::hook_function<&f3>(l2);
+    CHECK(f3(42) == 168);
+}
+
+NO_OPTIMIZE
+int f4(int arg) {
+    return arg;
+}
+
+TEST_CASE("hook with different tags") {
+    auto l = [](auto original, auto arg) {
+        return original(arg) + 1;
+    };
+
+    CHECK(f4(42) == 42);
+
+    rcmp::hook_function<class Tag1, decltype(f4)>(rcmp::bit_cast<const void*>(&f4), l);
+    CHECK(f4(42) == 43);
+
+    rcmp::hook_function<class Tag2, decltype(f4)>(rcmp::bit_cast<const void*>(&f4), l);
+    CHECK(f4(42) == 44);
+}
