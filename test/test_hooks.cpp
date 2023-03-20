@@ -282,15 +282,15 @@ TEST_CASE("double hook") {
     };
 
     CHECK(f3(42) == 42);
-    rcmp::hook_function<&f3>(l);
+    rcmp::hook_function<decltype(f3)>(follow_jmp(f3), l);
     CHECK(f3(42) == 84);
 
     // Hooking with same lambda should fail because of global state
-    CHECK_THROWS_WITH(rcmp::hook_function<&f3>(l), Catch::Contains("Cannot install hook using same state twice"));
+    CHECK_THROWS_WITH(rcmp::hook_function<decltype(f3)>(follow_jmp(f3), l), Catch::Contains("Cannot install hook using same state twice"));
     CHECK(f3(42) == 84);
 
     // However, it should work for different lambdas because of different state
-    rcmp::hook_function<&f3>(l2);
+    rcmp::hook_function<decltype(f3)>(follow_jmp(f3), l2);
     CHECK(f3(42) == 168);
 }
 
@@ -306,10 +306,10 @@ TEST_CASE("hook with different tags") {
 
     CHECK(f4(42) == 42);
 
-    rcmp::hook_function<class Tag1, decltype(f4)>(rcmp::bit_cast<const void*>(&f4), l);
+    rcmp::hook_function<class Tag1, decltype(f4)>(follow_jmp(&f4), l);
     CHECK(f4(42) == 43);
 
-    rcmp::hook_function<class Tag2, decltype(f4)>(rcmp::bit_cast<const void*>(&f4), l);
+    rcmp::hook_function<class Tag2, decltype(f4)>(follow_jmp(&f4), l);
     CHECK(f4(42) == 44);
 }
 
