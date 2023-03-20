@@ -1,6 +1,6 @@
 #pragma once
 
-#include "detail/hook_installer/global_state.hpp"
+#include "detail/hook_installer.hpp"
 #include "detail/address.hpp"
 #include "detail/hook_state.hpp"
 
