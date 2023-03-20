@@ -1,5 +1,7 @@
 #pragma once
 
+#include "with_global_state.hpp"
+
 namespace rcmp {
 
 namespace detail {
@@ -12,7 +14,7 @@ namespace detail {
 rcmp::address_t install_x86_x86_64_raw_hook(rcmp::address_t original_function, rcmp::address_t wrapper_function);
 
 struct HookPrologPolicy {
-    static rcmp::address_t install_raw_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
+    static rcmp::address_t install_stateless_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
         // `address` is an address of function body start
         return install_x86_x86_64_raw_hook(address, wrapper_function);
     }
@@ -24,11 +26,16 @@ struct HookPrologPolicy {
 
 #if defined(RCMP_HAS_HOOK_PROLOG_POLICY)
 
+// TODO: cleanup copy-paste
 template <auto FunctionAddress, class Signature, class F>
 void hook_function(F&& hook) {
     static_assert(std::is_constructible_v<rcmp::address_t, decltype(FunctionAddress)>);
 
-    rcmp::generic_hook_function<detail::HookPrologPolicy, FunctionAddress, Signature>(std::forward<F>(hook));
+    using wrapped_policy_t = detail::WithGlobalState<
+        detail::HookPrologPolicy,
+        std::integral_constant<decltype(FunctionAddress), FunctionAddress>
+    >;
+    rcmp::generic_hook_function<wrapped_policy_t::template Policy, FunctionAddress, Signature>(std::forward<F>(hook));
 }
 
 template <auto Function, class F>
@@ -38,14 +45,23 @@ void hook_function(F&& hook) {
     static_assert(std::is_pointer_v<Signature>,                         "Function is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
     static_assert(std::is_function_v<std::remove_pointer_t<Signature>>, "Function is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
 
-    rcmp::generic_hook_function<detail::HookPrologPolicy, Signature,
+    using wrapped_policy_t = detail::WithGlobalState<
+        detail::HookPrologPolicy,
         std::integral_constant<Signature, Function>
-    >(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
+    >;
+    rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
 }
 
 template <class Tag, class Signature, class F>
 void hook_function(rcmp::address_t function_address, F&& hook) {
-    rcmp::generic_hook_function<detail::HookPrologPolicy, Signature, Tag>(function_address, std::forward<F>(hook));
+    using wrapped_policy_t = detail::WithGlobalState<
+        detail::HookPrologPolicy,
+        Tag
+    >;
+    rcmp::generic_hook_function<
+        wrapped_policy_t::template Policy,
+        Signature
+    >(function_address, std::forward<F>(hook));
 }
 
 template <class Signature, class F>

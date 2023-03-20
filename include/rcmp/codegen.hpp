@@ -9,23 +9,22 @@
 
 namespace rcmp {
 
-template <class Policy, class Signature, class... Tags, class Hook>
+template <template <class> class Policy, class Signature, class Hook>
 void generic_hook_function(rcmp::address_t original_address, Hook&& hook) {
-    detail::global_state_hook_installer<
+    detail::hook_installer<
         to_generic_signature<Signature>,
-        std::decay_t<Hook>,
-        Hook, Tags...
+        std::decay_t<Hook>
     >::template install_hook<Policy>(original_address, std::forward<Hook>(hook));
 }
 
-template <class Policy, auto Address, class Signature, class... Tags, class Hook>
+// TODO: remove this overload
+template <template <class> class Policy, auto Address, class Signature, class Hook>
 void generic_hook_function(Hook&& hook) {
     static_assert(std::is_constructible_v<rcmp::address_t, decltype(Address)>);
 
     return rcmp::generic_hook_function<
         Policy,
-        Signature,
-        std::integral_constant<decltype(Address), Address>, Tags...
+        Signature
     >(Address, std::forward<Hook>(hook));
 }
 
