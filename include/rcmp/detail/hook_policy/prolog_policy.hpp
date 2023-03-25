@@ -20,6 +20,10 @@ struct HookPrologPolicy {
     }
 };
 
+// Calling convention friendly implementation of std::is_function_v
+template <class T>
+constexpr bool is_function_v = !std::is_const_v<T> && !std::is_reference_v<T>;
+
 #endif
 
 }
@@ -50,8 +54,8 @@ template <auto Function, class F>
 void hook_function(F&& hook) {
     using Signature = decltype(Function);
 
-    static_assert(std::is_pointer_v<Signature>,                         "Function is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
-    static_assert(std::is_function_v<std::remove_pointer_t<Signature>>, "Function is not a pointer to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
+    static_assert(std::is_pointer_v<Signature>,                            "Function is not a _pointer_ to function. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
+    static_assert(detail::is_function_v<std::remove_pointer_t<Signature>>, "Function is not a pointer to _function_. Did you forget to specify signature? (rcmp::hook_function<.., Signature>(..) overload)");
 
     using Tag = std::integral_constant<Signature, Function>;
     rcmp::hook_function<Tag, Signature>(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
