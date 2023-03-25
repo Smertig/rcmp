@@ -32,6 +32,7 @@ struct WithGlobalState {
         }
 
         static void set_state(HookState* state) {
+            (void)state;
             assert(state == nullptr || state == &g_state);
         }
     };
