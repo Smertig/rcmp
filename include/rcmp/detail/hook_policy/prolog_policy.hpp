@@ -13,7 +13,7 @@ namespace detail {
 // returns relocated original function address
 rcmp::address_t install_x86_x86_64_raw_hook(rcmp::address_t original_function, rcmp::address_t wrapper_function);
 
-struct HookPrologPolicy {
+struct HookPrologStatelessPolicy {
     static rcmp::address_t install_stateless_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
         // `address` is an address of function body start
         return install_x86_x86_64_raw_hook(address, wrapper_function);
@@ -33,7 +33,7 @@ constexpr bool is_function_v = !std::is_const_v<T> && !std::is_reference_v<T>;
 template <class Tag, class Signature, class F>
 void hook_function(rcmp::address_t function_address, F&& hook) {
     using wrapped_policy_t = detail::WithGlobalState<
-        detail::HookPrologPolicy,
+        detail::HookPrologStatelessPolicy,
         Tag
     >;
     rcmp::generic_hook_function<

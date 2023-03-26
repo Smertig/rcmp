@@ -14,7 +14,7 @@ namespace detail {
 
 #define RCMP_HAS_HOOK_INDIRECT_POLICY
 
-struct HookIndirectPolicy {
+struct HookIndirectStatelessPolicy {
     static rcmp::address_t install_stateless_hook(rcmp::address_t address, rcmp::address_t wrapper_function) {
         // `address` is an address of memory region (`sizeof(void*)` bytes) storing address of function body
         auto& function_address_ref = *address.as_ptr<rcmp::address_t>();
@@ -33,7 +33,7 @@ struct HookIndirectPolicy {
 template <class Tag, class Signature, class F>
 void hook_indirect_function(rcmp::address_t indirect_function_address, F&& hook) {
     using wrapped_policy_t = detail::WithGlobalState<
-        detail::HookIndirectPolicy,
+        detail::HookIndirectStatelessPolicy,
         Tag
     >;
     rcmp::generic_hook_function<wrapped_policy_t::template Policy, Signature>(indirect_function_address, std::forward<F>(hook));
