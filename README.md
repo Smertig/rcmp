@@ -2,7 +2,6 @@
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
   <a href="https://github.com/Smertig/rcmp/actions"><img src="https://github.com/Smertig/rcmp/workflows/Tagged%20Release/badge.svg" alt="GitHub Actions"></a>
   <a href="https://github.com/Smertig/rcmp/actions"><img src="https://github.com/Smertig/rcmp/workflows/Build%20On%20Push/badge.svg" alt="GitHub Actions"></a>
-  <a href="https://travis-ci.org/Smertig/rcmp"><img src="https://travis-ci.org/Smertig/rcmp.svg?branch=master" alt="Travis CI"></a>
 </p>
 
 <p align="center">
