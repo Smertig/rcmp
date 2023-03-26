@@ -50,12 +50,12 @@ jobs:
           - { title: "Linux", os: "ubuntu-22.04", cc: "clang-15", arch: "x64" }
 
           # msvc
-          # - { title: "Windows" , os: "windows-2018", cc: "vs2017", arch: "x86" } # TODO: forever in queue, enable later
-          # - { title: "Windows" , os: "windows-2018", cc: "vs2017", arch: "x64" } # ^^
-          # - { title: "Windows" , os: "windows-2020", cc: "vs2019", arch: "x86" } # ^^
-          # - { title: "Windows" , os: "windows-2020", cc: "vs2019", arch: "x64" } # ^^
-          - { title: "Windows" , os: "windows-2022", cc: "vs2022", arch: "x86" }
-          - { title: "Windows" , os: "windows-2022", cc: "vs2022", arch: "x64" }
+          # - { title: "Windows" , os: "windows-2018", cc: "vs2017", arch: "x86", debug_only: true } # TODO: forever in queue, enable later
+          # - { title: "Windows" , os: "windows-2018", cc: "vs2017", arch: "x64", debug_only: true } # ^^
+          # - { title: "Windows" , os: "windows-2020", cc: "vs2019", arch: "x86", debug_only: true } # ^^
+          # - { title: "Windows" , os: "windows-2020", cc: "vs2019", arch: "x64", debug_only: true } # ^^
+          - { title: "Windows" , os: "windows-2022", cc: "vs2022", arch: "x86", debug_only: true }
+          - { title: "Windows" , os: "windows-2022", cc: "vs2022", arch: "x64", debug_only: true }
 
     steps:
       - name: "Checkout rcmp"
@@ -86,6 +86,7 @@ jobs:
           --build-defs=${{matrix.defs}}
 
       - name: "[Release] Prepare & Configure & Build & Test"
+        if: ${{matrix.debug_only != true}}
         run: python build-actions/action.py
           --step=all
           --compiler=${{matrix.cc}}
