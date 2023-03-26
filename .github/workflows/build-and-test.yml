@@ -75,7 +75,7 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: "Prepare & Configure & Build & Test"
+      - name: "[Debug] Prepare & Configure & Build & Test"
         run: python build-actions/action.py
           --step=all
           --compiler=${{matrix.cc}}
@@ -83,4 +83,14 @@ jobs:
           --config=source/.github/workflows/build-config.json
           --source-dir=source
           --build-type=Debug
+          --build-defs=${{matrix.defs}}
+
+      - name: "[Release] Prepare & Configure & Build & Test"
+        run: python build-actions/action.py
+          --step=all
+          --compiler=${{matrix.cc}}
+          --architecture=${{matrix.arch}}
+          --config=source/.github/workflows/build-config.json
+          --source-dir=source
+          --build-type=Release
           --build-defs=${{matrix.defs}}
