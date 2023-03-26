@@ -15,6 +15,8 @@ target_link_libraries(rcmp-tests PRIVATE rcmp)
 set_target_properties(rcmp-tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 if(MSVC)
+    # Disable thunk functions, otherwise they have too small body (5 bytes - only single jump) to hook.
+    target_link_options(rcmp-tests PRIVATE /INCREMENTAL:NO)
     target_compile_options(rcmp-tests PRIVATE /W4 /WX)
 else()
     target_compile_options(rcmp-tests PRIVATE -Wall -Wextra -pedantic -Wno-attributes -Werror)

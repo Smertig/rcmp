@@ -42,29 +42,14 @@ TEST_CASE("Simplest hook") {
 
 #endif // RCMP_GET_ARCH() == RCMP_ARCH_X86
 
-template <class Signature>
-rcmp::address_t follow_jmp(Signature function) {
-    rcmp::address_t address = rcmp::bit_cast<const void*>(function);
-
-#ifdef _WIN64
-    // j_foo -> foo
-    // TODO: [XX YY YY YY YY] jmp relocated incorrectly on x64
-    // TODO: automatically follow jumps
-    address += *(address + 1).as_ptr<std::int32_t>() + 5;
-#endif
-    return address;
-}
-
 NO_OPTIMIZE int foo(int arg) {
     return arg + 1;
 }
 
 TEST_CASE("Hooks") {
-    rcmp::address_t foo_address = follow_jmp(foo);
-
     REQUIRE(foo(1) == 2);
 
-    rcmp::hook_function<int(*)(int)>(foo_address, [](auto original, int arg) {
+    rcmp::hook_function<&foo>([](auto original, int arg) {
         return original(arg) * 2;
     });
 
@@ -73,12 +58,12 @@ TEST_CASE("Hooks") {
     const auto hook = [](auto original, int arg) {
         return original(arg) * 2;
     };
-    rcmp::hook_function<int(int)>(foo_address, hook);
+    rcmp::hook_function<int(int)>(rcmp::bit_cast<const void*>(foo), hook);
 
     REQUIRE(foo(1) == 8);
 
 #if RCMP_HAS_NATIVE_X64_CALL()
-    rcmp::hook_function<rcmp::generic_signature_t<int(int), rcmp::cconv::native_x64>>(foo_address, [](auto original, int arg) {
+    rcmp::hook_function<rcmp::generic_signature_t<int(int), rcmp::cconv::native_x64>>(rcmp::bit_cast<const void*>(foo), [](auto original, int arg) {
         return original(arg) * 3;
     });
 
@@ -98,13 +83,19 @@ static_assert(std::is_same_v<rcmp::to_generic_signature<decltype(&g1)>, rcmp::cd
 TEST_CASE("cdecl calling convention") {
     REQUIRE(g1(10, 10.0f) == Approx(100.0f));
 
-    rcmp::hook_function<rcmp::cdecl_t<float(int, float)>>(follow_jmp(g1), [](auto original, int a, float b) {
+    rcmp::hook_function<rcmp::cdecl_t<float(int, float)>>(rcmp::bit_cast<const void*>(g1), [](auto original, int a, float b) {
         REQUIRE(a == 10);
         REQUIRE(b == Approx(10.0f));
         return 2.0f * original(a + 1, b - 1.0f);
     });
 
     REQUIRE(g1(10, 10.0f) == Approx(198.0f));
+
+    rcmp::hook_function<&g1>([](auto original, int a, float b) {
+        return 2.0f * original(a, b);
+    });
+
+    REQUIRE(g1(10, 10.0f) == Approx(396.0f));
 
     constexpr auto converted_sum = rcmp::with_signature<sum, rcmp::cdecl_t<int(int, int)>>;
     REQUIRE(converted_sum(1, 2) == sum(1, 2));
@@ -125,11 +116,17 @@ static_assert(std::is_same_v<rcmp::to_generic_signature<decltype(&g2)>, rcmp::st
 TEST_CASE("stdcall calling convention") {
     REQUIRE(g2(10, 10) == 100);
 
-    rcmp::hook_function<rcmp::stdcall_t<float(int, float)>>(follow_jmp(g2), [](auto original, int a, float b) {
+    rcmp::hook_function<rcmp::stdcall_t<float(int, float)>>(rcmp::bit_cast<const void*>(g2), [](auto original, int a, float b) {
         return 2.0f * original(a + 1, b - 1.0f);
     });
 
-    REQUIRE(g2(10, 10) == 198);
+    REQUIRE(g2(10, 10) == 198.0f);
+
+    rcmp::hook_function<&g2>([](auto original, int a, float b) {
+        return 2.0f * original(a, b);
+    });
+
+    REQUIRE(g2(10, 10) == 396.0f);
 
     constexpr auto converted_sum = rcmp::with_signature<sum, rcmp::stdcall_t<int(int, int)>>;
     REQUIRE(converted_sum(1, 2) == sum(1, 2));
@@ -152,11 +149,20 @@ static_assert(std::is_same_v<rcmp::to_generic_signature<decltype(&C::g3)>, rcmp:
 TEST_CASE("thiscall calling convention") {
     REQUIRE(C::g3(10, 10) == 101);
 
-    rcmp::hook_function<rcmp::thiscall_t<float(int, float)>>(follow_jmp(C::g3), [](auto original, int a, float b) {
+    rcmp::hook_function<rcmp::thiscall_t<float(int, float)>>(rcmp::bit_cast<const void*>(C::g3), [](auto original, int a, float b) {
         return 2.0f * original(a + 1, b - 1.0f);
     });
 
-    REQUIRE(C::g3(10, 10) == 200);
+    // TODO: fixme? error C3865: '__thiscall': can only be used on native member functions
+#if RCMP_GET_COMPILER() != RCMP_COMPILER_MSVC
+    REQUIRE(C::g3(10, 10) == 200.0f);
+
+    rcmp::hook_function<&C::g3>([](auto original, int a, float b) {
+        return 2.0f * original(a, b);
+    });
+
+    REQUIRE(C::g3(10, 10) == 400.0f);
+#endif
 
     constexpr auto converted_sum = rcmp::with_signature<sum, rcmp::thiscall_t<int(int, int)>>;
     REQUIRE(converted_sum(1, 2) == sum(1, 2));
@@ -177,11 +183,17 @@ static_assert(std::is_same_v<rcmp::to_generic_signature<decltype(&g4)>, rcmp::fa
 TEST_CASE("fastcall calling convention") {
     REQUIRE(g4(10, 10) == 100);
 
-    rcmp::hook_function<rcmp::fastcall_t<float(int, float)>>(follow_jmp(g4), [](auto original, int a, float b) {
+    rcmp::hook_function<rcmp::fastcall_t<float(int, float)>>(rcmp::bit_cast<const void*>(g4), [](auto original, int a, float b) {
         return 2.0f * original(a + 1, b - 1.0f);
     });
 
     REQUIRE(g4(10, 10) == 198);
+
+    rcmp::hook_function<&g4>([](auto original, int a, float b) {
+        return 2.0f * original(a, b);
+    });
+
+    REQUIRE(g4(10, 10) == 396);
 
     constexpr auto converted_sum = rcmp::with_signature<sum, rcmp::fastcall_t<int(int, int)>>;
     REQUIRE(converted_sum(1, 2) == sum(1, 2));
@@ -282,15 +294,15 @@ TEST_CASE("double hook") {
     };
 
     CHECK(f3(42) == 42);
-    rcmp::hook_function<decltype(f3)>(follow_jmp(f3), l);
+    rcmp::hook_function<decltype(f3)>(rcmp::bit_cast<const void*>(f3), l);
     CHECK(f3(42) == 84);
 
     // Hooking with same lambda should fail because of global state
-    CHECK_THROWS_WITH(rcmp::hook_function<decltype(f3)>(follow_jmp(f3), l), Catch::Contains("Cannot install hook using same state twice"));
+    CHECK_THROWS_WITH(rcmp::hook_function<decltype(f3)>(rcmp::bit_cast<const void*>(f3), l), Catch::Contains("Cannot install hook using same state twice"));
     CHECK(f3(42) == 84);
 
     // However, it should work for different lambdas because of different state
-    rcmp::hook_function<decltype(f3)>(follow_jmp(f3), l2);
+    rcmp::hook_function<decltype(f3)>(rcmp::bit_cast<const void*>(f3), l2);
     CHECK(f3(42) == 168);
 }
 
@@ -306,11 +318,15 @@ TEST_CASE("hook with different tags") {
 
     CHECK(f4(42) == 42);
 
-    rcmp::hook_function<class Tag1, decltype(f4)>(follow_jmp(&f4), l);
+    rcmp::hook_function<class Tag1, decltype(f4)>(rcmp::bit_cast<const void*>(f4), l);
     CHECK(f4(42) == 43);
 
-    rcmp::hook_function<class Tag2, decltype(f4)>(follow_jmp(&f4), l);
+    rcmp::hook_function<class Tag2, decltype(f4)>(rcmp::bit_cast<const void*>(f4), l);
     CHECK(f4(42) == 44);
+
+    // Function address is a new tag
+    rcmp::hook_function<&f4>(l);
+    CHECK(f4(42) == 45);
 }
 
 TEST_CASE("compile-time addresses") {
