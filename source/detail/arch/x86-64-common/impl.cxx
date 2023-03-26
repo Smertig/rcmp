@@ -211,10 +211,15 @@ std::size_t relocate_opcode(rcmp::address_t from, rcmp::address_t to) {
         const std::ptrdiff_t new_jmp_offset_long = jmp_destination_address - (bytes_to + long_opcode.len() + sizeof(jmp_diff_t));
         const jmp_diff_t new_jmp_offset = static_cast<jmp_diff_t>(new_jmp_offset_long);
 
-        // TODO: refactor
+#if RCMP_GET_ARCH() == RCMP_ARCH_X86
+        static_assert(sizeof(jmp_diff_t) == sizeof(std::ptrdiff_t));
+#else
         if (new_jmp_offset_long != new_jmp_offset) {
-            throw rcmp::error("unable to relocate jmp, too far");
+            // Use direct jump
+            make_jmp(bytes_to, jmp_destination_address);
+            return g_jmp_size;
         }
+#endif
 
         std::memcpy(bytes_to, long_opcode.data(), long_opcode.len());
         std::memcpy(bytes_to + long_opcode.len(), &new_jmp_offset, sizeof(new_jmp_offset));
