@@ -31,8 +31,7 @@ struct WithGlobalState {
             return &g_state;
         }
 
-        static void set_state(HookState* state) {
-            (void)state;
+        static void set_state([[maybe_unused]] HookState* state) {
             assert(state == nullptr || state == &g_state);
         }
     };
