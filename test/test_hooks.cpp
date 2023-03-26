@@ -339,3 +339,28 @@ TEST_CASE("compile-time addresses") {
     rcmp::hook_indirect_function<0x1, void()>([](auto) {});
     rcmp::hook_function<0x1, void()>([](auto) {});
 }
+
+struct X {
+    char arr[100];
+};
+
+NO_OPTIMIZE
+float f5(int a, float b, X x) {
+    return a + b * 2 + (x.arr[0] + x.arr[99]) * 3;
+}
+
+#if RCMP_GET_ARCH() == RCMP_ARCH_X86
+TEST_CASE("Hooks with tls-state") {
+    X x{};
+    x.arr[0] = x.arr[99] = 1;
+    REQUIRE(f5(100, 20.f, x) == 146);
+
+    for (int i = 1; i <= 10; i++) {
+        rcmp::hook_function_stateless<decltype(&f5)>(rcmp::bit_cast<const void*>(&f5), [](auto original, auto... args) -> float {
+            return original(args...) + 1;
+        });
+
+        REQUIRE(f5(100, 20.f, x) == 146 + i);
+    }
+}
+#endif

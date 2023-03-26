@@ -20,6 +20,35 @@ struct HookPrologStatelessPolicy {
     }
 };
 
+#if RCMP_GET_ARCH() == RCMP_ARCH_X86
+rcmp::address_t install_x86_x86_64_hook_with_tls_state(rcmp::address_t original_function, rcmp::address_t wrapper_function, void* state, void(*state_saver)(void*));
+
+template <class HookState>
+struct HookPrologTlsStatePolicy {
+    static rcmp::address_t install_raw_hook(HookState* state, rcmp::address_t address, rcmp::address_t wrapper_function) {
+        return install_x86_x86_64_hook_with_tls_state(address, wrapper_function, state, +[](void* current_state) {
+            set_state(static_cast<HookState*>(current_state));
+        });
+    }
+
+    static HookState* allocate_state([[maybe_unused]] rcmp::address_t address) {
+        return new HookState;
+    }
+
+    static HookState* get_state() {
+        assert(g_current_state != nullptr);
+        return g_current_state;
+    }
+
+    static void set_state(HookState* state) {
+        g_current_state = state;
+    }
+
+private:
+    static inline thread_local HookState* g_current_state = nullptr;
+};
+#endif
+
 // Calling convention friendly implementation of std::is_function_v
 template <class T>
 constexpr bool is_function_v = !std::is_const_v<T> && !std::is_reference_v<T>;
@@ -65,6 +94,16 @@ template <class Signature, class F>
 void hook_function(rcmp::address_t function_address, F&& hook) {
     rcmp::hook_function<class Tag, Signature>(function_address, std::forward<F>(hook));
 }
+
+#if RCMP_GET_ARCH() == RCMP_ARCH_X86
+template <class Signature, class F>
+void hook_function_stateless(rcmp::address_t function_address, F&& hook) {
+    rcmp::generic_hook_function<
+        detail::HookPrologTlsStatePolicy,
+        Signature
+    >(function_address, std::forward<F>(hook));
+}
+#endif
 
 #endif
 

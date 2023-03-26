@@ -33,17 +33,27 @@ using jmp_diff_t = std::int32_t;
 
 #if RCMP_GET_ARCH() == RCMP_ARCH_X86
 constexpr std::size_t g_jmp_size = 1 + sizeof(jmp_diff_t);
+constexpr std::size_t g_call_size = g_jmp_size;
 
-void make_jmp(rcmp::address_t from, rcmp::address_t to) {
+void make_jmp_or_call_impl(rcmp::address_t from, rcmp::address_t to, std::uint8_t opcode) {
     const jmp_diff_t delta = to - (from + g_jmp_size);
     static_assert(sizeof(delta) == 4);
 
     std::array<std::byte, g_jmp_size> code;
-    code[0] = std::byte{ 0xE9 };
+    code[0] = std::byte{ opcode };
     std::memcpy(&code[1], &delta, sizeof(delta));
 
     rcmp::set_opcode(from, code);
 }
+
+void make_jmp(rcmp::address_t from, rcmp::address_t to) {
+    return make_jmp_or_call_impl(from, to, 0xE9);
+}
+
+void make_call(rcmp::address_t from, rcmp::address_t to) {
+    return make_jmp_or_call_impl(from, to, 0xE8);
+}
+
 #else
 constexpr std::size_t g_jmp_size = 8 + sizeof(std::uintptr_t);
 
@@ -64,6 +74,27 @@ void make_jmp(rcmp::address_t from, rcmp::address_t to) {
 
     rcmp::set_opcode(from, code);
 }
+
+constexpr std::size_t g_call_size = 8 + sizeof(std::uintptr_t);
+
+[[maybe_unused]]
+void make_call(rcmp::address_t from, rcmp::address_t to) {
+    std::uintptr_t to_value = to.as_number();
+
+    std::array<std::byte, g_call_size> code;
+    code[0] = std::byte{ 0xFF };
+    code[1] = std::byte{ 0x15 };
+    code[2] = std::byte{ 0x02 };
+    code[3] = std::byte{ 0x00 };
+    code[4] = std::byte{ 0x00 };
+    code[5] = std::byte{ 0x00 };
+    code[6] = std::byte{ 0xEB };
+    code[7] = std::byte{ 0x08 };
+    std::memcpy(&code[8], &to_value, sizeof(to_value));
+
+    rcmp::set_opcode(from, code);
+}
+
 #endif
 
 class opcode {
@@ -284,6 +315,55 @@ rcmp::address_t rcmp::detail::install_x86_x86_64_raw_hook(rcmp::address_t origin
     // force memory leak
     return new_original.release();
 }
+
+#if RCMP_GET_ARCH() == RCMP_ARCH_X86
+rcmp::address_t rcmp::detail::install_x86_x86_64_hook_with_tls_state(rcmp::address_t original_function, rcmp::address_t wrapper_function, void* state, void(*state_saver)(void*)) {
+#if RCMP_GET_ARCH() == RCMP_ARCH_X86
+    auto tls_injector_size = 0;
+    tls_injector_size += 5;           // push `state`
+    tls_injector_size += g_call_size; // call `state_saver`
+    tls_injector_size += 3 ;          // add esp, 4
+    tls_injector_size += g_jmp_size;  // jmp to wrapper
+
+    auto tls_injector = allocate_code(tls_injector_size);
+    auto ptr = tls_injector.get();
+
+    auto write = [&ptr](auto value) {
+        std::memcpy(ptr, &value, sizeof value);
+        ptr += sizeof value;
+    };
+
+    // push `state`
+    write(std::uint8_t{ 0x68 });
+    write(rcmp::bit_cast<std::uintptr_t>(state));
+
+    // call `state_saver`
+    make_call(ptr, rcmp::bit_cast<std::uintptr_t>(state_saver));
+    ptr += g_call_size;
+
+    // add esp, 4
+    write(std::array<std::uint8_t, 3>{{ 0x83, 0xC4, 0x04 }});
+#else
+    static_assert(false, "Not supported yet");
+#endif
+
+    // Jump from `tls_injector` to our wrapper
+    make_jmp(ptr, wrapper_function);
+
+    // Move the beginning of `original_function` to a new address
+    auto new_original = relocate_function(original_function, g_jmp_size);
+
+    // Jump from `original_function` to `tls_injector`
+    make_jmp(original_function, tls_injector.get());
+
+    // force memory leak
+    tls_injector.release();
+
+    // Return address of moved `original_function`, so it can be later called from `wrapper_function`
+    // force memory leak
+    return new_original.release();
+}
+#endif
 
 #define RCMP_ENABLE_ONLY_LENGTH_DISASM
 
