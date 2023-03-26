@@ -71,7 +71,7 @@ jobs:
           ref: "9906d2d5ce233f2fb64626d92616af9cb9182f2d"
 
       - name: "Python"
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.x"
 
