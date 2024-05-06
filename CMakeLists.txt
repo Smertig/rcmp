@@ -5,9 +5,6 @@ set(RCMP_VERSION_MAJOR 0)
 set(RCMP_VERSION_MINOR 2)
 set(RCMP_VERSION_PATCH 1)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(RCMP_EXTERNAL_DIR ${PROJECT_SOURCE_DIR}/external)
 set(RCMP_SOURCE_DIR ${PROJECT_SOURCE_DIR}/source)
 
@@ -17,6 +14,8 @@ add_library(rcmp STATIC
         ${RCMP_SOURCE_DIR}/detail/arch/impl.cpp
         ${RCMP_SOURCE_DIR}/detail/platform/impl.cpp
         )
+
+target_compile_features(rcmp PUBLIC cxx_std_17)
 
 target_include_directories(rcmp PUBLIC
         ${PROJECT_SOURCE_DIR}/include
