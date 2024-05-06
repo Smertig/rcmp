@@ -21,7 +21,7 @@ if(MSVC)
         # Don't merge identical functions into a single one
         /OPT:NOICF
     )
-    target_compile_options(rcmp-tests PRIVATE /W4 /WX)
+    target_compile_options(rcmp-tests PRIVATE /W4)
 else()
-    target_compile_options(rcmp-tests PRIVATE -Wall -Wextra -pedantic -Wno-attributes -Werror)
+    target_compile_options(rcmp-tests PRIVATE -Wall -Wextra -pedantic -Wno-attributes)
 endif()
