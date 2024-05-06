@@ -30,8 +30,8 @@ jobs:
           - { title: "Linux", os: "ubuntu-22.04", cc: "gcc-12", arch: "x64" }
 
           # clang
-          - { title: "Linux", os: "ubuntu-18.04", cc: "clang-5.0", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-18.04", cc: "clang-5.0", arch: "x64" }
+          # - { title: "Linux", os: "ubuntu-18.04", cc: "clang-5.0", arch: "x86" } # forever in queue
+          # - { title: "Linux", os: "ubuntu-18.04", cc: "clang-5.0", arch: "x64" } # forever in queue
           - { title: "Linux", os: "ubuntu-20.04", cc: "clang-6.0", arch: "x86" }
           - { title: "Linux", os: "ubuntu-20.04", cc: "clang-6.0", arch: "x64" }
           - { title: "Linux", os: "ubuntu-20.04", cc: "clang-7", arch: "x86" }
