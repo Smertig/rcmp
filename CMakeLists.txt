@@ -27,9 +27,9 @@ target_compile_definitions(rcmp PUBLIC RCMP_VERSION_MINOR=${RCMP_VERSION_MINOR})
 target_compile_definitions(rcmp PUBLIC RCMP_VERSION_PATCH=${RCMP_VERSION_PATCH})
 
 if(MSVC)
-    target_compile_options(rcmp PRIVATE /W4 /WX)
+    target_compile_options(rcmp PRIVATE /W4)
 else()
-    target_compile_options(rcmp PRIVATE -Wall -Wextra -pedantic -Werror)
+    target_compile_options(rcmp PRIVATE -Wall -Wextra -pedantic)
 endif()
 
 if (${CMAKE_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
