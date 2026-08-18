@@ -47,7 +47,7 @@ void hook_indirect_function(F&& hook) {
     rcmp::hook_indirect_function<Tag, Signature>(IndirectFunctionAddress, std::forward<F>(hook));
 }
 
-template <class Signature, class F>
+template <class Signature, class F, std::enable_if_t<detail::is_signature_v<Signature>, int> = 0>
 void hook_indirect_function(rcmp::address_t indirect_function_address, F&& hook) {
     rcmp::hook_indirect_function<class Tag, Signature>(indirect_function_address, std::forward<F>(hook));
 }

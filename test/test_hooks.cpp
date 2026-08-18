@@ -338,6 +338,10 @@ TEST_CASE("compile-time addresses") {
     // Just to check compilation, should not be called
     rcmp::hook_indirect_function<0x1, void()>([](auto) {});
     rcmp::hook_function<0x1, void()>([](auto) {});
+
+    // Signature spelled as a pointer to function, hook with a parameter pack
+    rcmp::hook_indirect_function<0x1, void(*)(int)>([](auto original, auto... args) { original(args...); });
+    rcmp::hook_function<0x1, void(*)(int)>([](auto original, auto... args) { original(args...); });
 }
 
 struct X {

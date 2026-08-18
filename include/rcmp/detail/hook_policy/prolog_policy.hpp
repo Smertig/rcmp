@@ -79,7 +79,7 @@ void hook_function(F&& hook) {
     rcmp::hook_function<Tag, Signature>(FunctionAddress, std::forward<F>(hook));
 }
 
-template <auto Function, class F>
+template <auto Function, class F, std::enable_if_t<detail::is_signature_v<decltype(Function)>, int> = 0>
 void hook_function(F&& hook) {
     using Signature = decltype(Function);
 
@@ -90,7 +90,7 @@ void hook_function(F&& hook) {
     rcmp::hook_function<Tag, Signature>(rcmp::bit_cast<const void*>(Function), std::forward<F>(hook));
 }
 
-template <class Signature, class F>
+template <class Signature, class F, std::enable_if_t<detail::is_signature_v<Signature>, int> = 0>
 void hook_function(rcmp::address_t function_address, F&& hook) {
     rcmp::hook_function<class Tag, Signature>(function_address, std::forward<F>(hook));
 }

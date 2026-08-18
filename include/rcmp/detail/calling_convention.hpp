@@ -2,6 +2,8 @@
 
 #include "config.hpp"
 
+#include <type_traits>
+
 namespace rcmp {
 
 enum class cconv {
@@ -164,6 +166,16 @@ namespace detail {
         }
     };
 #endif
+
+    // Whether `T` is accepted by `to_generic_signature`
+    template <class T>
+    struct is_signature_impl : std::is_function<std::remove_pointer_t<T>> {};
+
+    template <class Signature, cconv Convention>
+    struct is_signature_impl<generic_signature_t<Signature, Convention>> : std::true_type {};
+
+    template <class T>
+    constexpr bool is_signature_v = is_signature_impl<T>::value;
 } // namespace detail
 
 template <class Signature>
