@@ -8,94 +8,77 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    name: "${{matrix.title}} (${{matrix.cc}}, ${{matrix.arch}})"
+    runs-on: ${{matrix.target.os}}
+    name: "${{matrix.target.title}} (${{matrix.target.cc}}, ${{matrix.target.arch}}, C++${{matrix.standard}})"
 
     strategy:
       fail-fast: false
       matrix:
-        include:
+        standard: [17, 20]
+        target:
           # gcc
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-7", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-7", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-8", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-8", arch: "x64" }
-          #- { title: "Linux", os: "ubuntu-20.04", cc: "gcc-9", arch: "x86" } # bug with calling conventions
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-9", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-10", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-10", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-11", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "gcc-11", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "gcc-11", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-22.04", cc: "gcc-11", arch: "x64" }
           - { title: "Linux", os: "ubuntu-22.04", cc: "gcc-12", arch: "x86" }
           - { title: "Linux", os: "ubuntu-22.04", cc: "gcc-12", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "gcc-13", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "gcc-13", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "gcc-14", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "gcc-14", arch: "x64" }
 
           # clang
-          # - { title: "Linux", os: "ubuntu-18.04", cc: "clang-5.0", arch: "x86" } # forever in queue
-          # - { title: "Linux", os: "ubuntu-18.04", cc: "clang-5.0", arch: "x64" } # forever in queue
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-6.0", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-6.0", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-7", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-7", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-8", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-8", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-9", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-9", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-10", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-20.04", cc: "clang-10", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-11", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-11", arch: "x64" }
-          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-12", arch: "x86" }
-          - { title: "Linux", os: "ubuntu-22.04", cc: "clang-12", arch: "x64" }
           - { title: "Linux", os: "ubuntu-22.04", cc: "clang-13", arch: "x86" }
           - { title: "Linux", os: "ubuntu-22.04", cc: "clang-13", arch: "x64" }
           - { title: "Linux", os: "ubuntu-22.04", cc: "clang-14", arch: "x86" }
           - { title: "Linux", os: "ubuntu-22.04", cc: "clang-14", arch: "x64" }
           - { title: "Linux", os: "ubuntu-22.04", cc: "clang-15", arch: "x86" }
           - { title: "Linux", os: "ubuntu-22.04", cc: "clang-15", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "clang-16", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "clang-16", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "clang-17", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "clang-17", arch: "x64" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "clang-18", arch: "x86" }
+          - { title: "Linux", os: "ubuntu-24.04", cc: "clang-18", arch: "x64" }
 
           # msvc
-          # - { title: "Windows" , os: "windows-2018", cc: "vs2017", arch: "x86", debug_only: true } # TODO: forever in queue, enable later
-          # - { title: "Windows" , os: "windows-2018", cc: "vs2017", arch: "x64", debug_only: true } # ^^
-          # - { title: "Windows" , os: "windows-2020", cc: "vs2019", arch: "x86", debug_only: true } # ^^
-          # - { title: "Windows" , os: "windows-2020", cc: "vs2019", arch: "x64", debug_only: true } # ^^
-          - { title: "Windows" , os: "windows-2022", cc: "vs2022", arch: "x86", debug_only: true }
-          - { title: "Windows" , os: "windows-2022", cc: "vs2022", arch: "x64", debug_only: true }
+          - { title: "Windows", os: "windows-2022", cc: "vs2022", arch: "x86", debug_only: true }
+          - { title: "Windows", os: "windows-2022", cc: "vs2022", arch: "x64", debug_only: true }
 
     steps:
       - name: "Checkout rcmp"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           path: "source"
 
       - name: "Checkout build-actions"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           repository: build-actions/build-actions
           path: "build-actions"
           ref: "9906d2d5ce233f2fb64626d92616af9cb9182f2d"
 
       - name: "Python"
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: "3.x"
 
       - name: "[Debug] Prepare & Configure & Build & Test"
         run: python build-actions/action.py
           --step=all
-          --compiler=${{matrix.cc}}
-          --architecture=${{matrix.arch}}
+          --compiler=${{matrix.target.cc}}
+          --architecture=${{matrix.target.arch}}
           --config=source/.github/workflows/build-config.json
           --source-dir=source
           --build-type=Debug
-          --build-defs=${{matrix.defs}}
+          --build-defs=CMAKE_CXX_STANDARD=${{matrix.standard}}
 
       - name: "[Release] Prepare & Configure & Build & Test"
-        if: ${{matrix.debug_only != true}}
+        if: ${{matrix.target.debug_only != true}}
         run: python build-actions/action.py
           --step=all
-          --compiler=${{matrix.cc}}
-          --architecture=${{matrix.arch}}
+          --compiler=${{matrix.target.cc}}
+          --architecture=${{matrix.target.arch}}
           --config=source/.github/workflows/build-config.json
           --source-dir=source
           --build-type=Release
-          --build-defs=${{matrix.defs}}
+          --build-defs=CMAKE_CXX_STANDARD=${{matrix.standard}}
