@@ -8,7 +8,7 @@ jobs:
     name: Inspect Code
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
@@ -20,7 +20,7 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Debug -A Win32
 
       - name: Inspect solution
-        uses: muno92/resharper_inspectcode@1.6.7
+        uses: muno92/resharper_inspectcode@1.17.3
         with:
           exclude: "**/external/**.*"
           failOnIssue: 0
