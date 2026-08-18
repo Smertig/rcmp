@@ -27,7 +27,7 @@ target_compile_definitions(rcmp PUBLIC RCMP_VERSION_MINOR=${RCMP_VERSION_MINOR})
 target_compile_definitions(rcmp PUBLIC RCMP_VERSION_PATCH=${RCMP_VERSION_PATCH})
 
 if(MSVC)
-    target_compile_options(rcmp PRIVATE /W4)
+    target_compile_options(rcmp PRIVATE /W4 /permissive-)
 else()
     target_compile_options(rcmp PRIVATE -Wall -Wextra -pedantic)
 endif()
